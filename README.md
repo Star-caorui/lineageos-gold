@@ -108,7 +108,7 @@ The rows are the items of LineageOS's [device support requirements](https://gith
 
 - aptX and HDR10 playback: the stock OS does not have them either.
 - Density: 440 dpi; the stock OS uses 480.
-- Verity on the vendor image: dm-verity is off in these builds (`--set_hashtree_disabled_flag` in vbmeta).
+- Verity on the vendor image: off, as LineageOS turns it off on userdebug builds. With it on, every update would also have to compute the hash trees of the partitions it writes on the phone, which makes incremental updates much slower.
 - Factory Reset Protection: left off, because a build without Google apps cannot clear what a Google-equipped system left on the FRP partition.
 
 Measured on 23.2:
