@@ -11,9 +11,6 @@ on:
       vendor_ref:
         description: Proprietary files branch, tag or commit
         default: lineage-24.0
-      kernel_ref:
-        description: Kernel lists branch, tag or commit (android_device_xiaomi_gold-kernels)
-        default: lineage-24.0
       gki:
         description: GOLD_GKI
         type: choice
@@ -79,7 +76,6 @@ jobs:
         env:
           DEVICE_REF: ${{ inputs.device_ref }}
           VENDOR_REF: ${{ inputs.vendor_ref }}
-          KERNEL_REF: ${{ inputs.kernel_ref }}
           GKI: ${{ inputs.gki }}
           SNAPSHOT_URL: ${{ inputs.snapshot_url }}
           SYNC_ONLY: ${{ inputs.sync_only }}
@@ -100,7 +96,7 @@ jobs:
                   --service-account gold-builder@$PROJECT.iam.gserviceaccount.com --scopes cloud-platform \
                   --labels purpose=gold-build,run=$GITHUB_RUN_ID \
                   --metadata-from-file $files \
-                  --metadata "run-id=$GITHUB_RUN_ID,bucket=$BUCKET,device-ref=$DEVICE_REF,vendor-ref=$VENDOR_REF,kernel-ref=$KERNEL_REF,gki=$GKI,sync-only=$SYNC_ONLY"; then
+                  --metadata "run-id=$GITHUB_RUN_ID,bucket=$BUCKET,device-ref=$DEVICE_REF,vendor-ref=$VENDOR_REF,gki=$GKI,sync-only=$SYNC_ONLY"; then
                 echo "started=$(date +%s)" >> $GITHUB_OUTPUT
                 echo "disks=$disks" >> $GITHUB_OUTPUT
                 exit 0
@@ -119,7 +115,6 @@ jobs:
         env:
           DEVICE_REF: ${{ inputs.device_ref }}
           VENDOR_REF: ${{ inputs.vendor_ref }}
-          KERNEL_REF: ${{ inputs.kernel_ref }}
           GKI: ${{ inputs.gki }}
           SNAPSHOT_URL: ${{ inputs.snapshot_url }}
         run: |
@@ -129,7 +124,6 @@ jobs:
             case $1 in
               android_device_xiaomi_gold) echo "$DEVICE_REF" ;;
               android_vendor_xiaomi_gold) echo "$VENDOR_REF" ;;
-              android_device_xiaomi_gold-kernels) echo "$KERNEL_REF" ;;
               *) echo "lineage-24.0" ;;
             esac
           }
@@ -144,7 +138,7 @@ jobs:
                 echo "| $r | \`$(asked $r)\` | [\`${sha:0:12}\`](https://github.com/Star-caorui/$r/commit/$sha) |"
               done < commits.txt
             else
-              for r in android_device_xiaomi_gold android_vendor_xiaomi_gold android_device_xiaomi_gold-kernels; do
+              for r in android_device_xiaomi_gold android_vendor_xiaomi_gold; do
                 echo "| $r | \`$(asked $r)\` | not synced |"
               done
             fi

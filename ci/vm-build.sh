@@ -4,7 +4,7 @@
 # runs/<run id>/ and then idles: the workflow deletes the VM as soon as it sees the status, and
 # the VM's maximum run time deletes it if the workflow is gone.
 #
-# Instance metadata it reads: run-id, bucket, device-ref, vendor-ref, kernel-ref, gki,
+# Instance metadata it reads: run-id, bucket, device-ref, vendor-ref, gki,
 # snapshot-url (optional: a manifest snapshot of an earlier build to rebuild it; the kernel
 # sources' snapshot is taken from next to it), sync-only (true: stop after the sync).
 
@@ -12,7 +12,7 @@ set -uo pipefail
 export HOME=/root  # startup scripts run without it; git and Soong need it
 md() { curl -sf -H 'Metadata-Flavor: Google' "http://metadata.google.internal/computeMetadata/v1/instance/attributes/$1"; }
 RUN=$(md run-id); BUCKET=$(md bucket)
-DEVICE_REF=$(md device-ref); VENDOR_REF=$(md vendor-ref); KERNEL_REF=$(md kernel-ref)
+DEVICE_REF=$(md device-ref); VENDOR_REF=$(md vendor-ref)
 GKI=$(md gki); SNAPSHOT_URL=$(md snapshot-url || true)
 SYNC_ONLY=$(md sync-only || true)
 R=gs://$BUCKET/runs/$RUN
@@ -41,7 +41,7 @@ trap finish EXIT
 ( while sleep 20; do gcloud storage cp $LOG $R/build.log --quiet 2>/dev/null; done ) &
 
 status running
-say "run $RUN: device $DEVICE_REF, vendor $VENDOR_REF, kernel $KERNEL_REF, GOLD_GKI=$GKI"
+say "run $RUN: device $DEVICE_REF, vendor $VENDOR_REF, GOLD_GKI=$GKI"
 nproc; free -g | sed -n 2p; df -h / | tail -1
 
 # The VM comes with local SSDs when they were to be had (cheaper than a big persistent disk, and the
@@ -140,10 +140,10 @@ if [ -n "$SNAPSHOT_URL" ]; then
 else
   git clone -q -b lineage-24.0 https://github.com/Star-caorui/local_manifests .repo/local_manifests || exit 1
   # Put each of our repositories at the ref asked for (a branch, a tag or a commit).
-  python3 - .repo/local_manifests/gold.xml "$DEVICE_REF" "$VENDOR_REF" "$KERNEL_REF" <<'EOF' || exit 1
+  python3 - .repo/local_manifests/gold.xml "$DEVICE_REF" "$VENDOR_REF" <<'EOF' || exit 1
 import sys, xml.etree.ElementTree as ET
-path, dev, ven, ker = sys.argv[1:]
-refs = {'android_device_xiaomi_gold': dev, 'android_vendor_xiaomi_gold': ven, 'android_device_xiaomi_gold-kernels': ker}
+path, dev, ven = sys.argv[1:]
+refs = {'android_device_xiaomi_gold': dev, 'android_vendor_xiaomi_gold': ven}
 t = ET.parse(path)
 for p in t.getroot().iter('project'):
     if p.get('name') in refs:
@@ -171,7 +171,7 @@ repo manifest -r -o $STAGE/manifest-snapshot.xml || exit 1
 # "synced" line, which is what the workflow waits for to write it.
 {
   [ -d .repo/local_manifests/.git ] && echo "local_manifests $(git -C .repo/local_manifests rev-parse HEAD)"
-  for d in device/xiaomi/gold vendor/xiaomi/gold device/xiaomi/gold-kernels; do
+  for d in device/xiaomi/gold vendor/xiaomi/gold; do
     [ -d $d ] && echo "$(git -C $d config --get remote.$(git -C $d remote | head -1).projectname 2>/dev/null || echo $d) $(git -C $d rev-parse HEAD)"
   done
 } > $STAGE/commits.txt

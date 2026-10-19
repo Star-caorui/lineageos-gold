@@ -7,7 +7,7 @@ Unofficial LineageOS for the Redmi Note 13 5G. Test builds: userdebug, signed wi
 | Downloads | [Releases](https://github.com/Star-caorui/lineageos-gold/releases) |
 | How to build | [local_manifests](https://github.com/Star-caorui/local_manifests) |
 | Device tree | [android_device_xiaomi_gold](https://github.com/Star-caorui/android_device_xiaomi_gold), forked from [Dhterech's](https://github.com/Dhterech/android_device_xiaomi_gold) |
-| Kernel | [android_kernel_xiaomi_gold_manifest](https://github.com/Star-caorui/android_kernel_xiaomi_gold_manifest): the sources of the vendor modules, built from source the way stock's are ([which match stock's](https://github.com/Star-caorui/android_kernel_xiaomi_gold_manifest/tree/OS3.0.5.0.VNQMIXM)); the kernel image is Google's GKI. Device trees and module lists in [android_device_xiaomi_gold-kernels](https://github.com/Star-caorui/android_device_xiaomi_gold-kernels) |
+| Kernel | [android_kernel_xiaomi_gold_manifest](https://github.com/Star-caorui/android_kernel_xiaomi_gold_manifest): the sources of the vendor modules, built from source the way stock's are ([which match stock's](https://github.com/Star-caorui/android_kernel_xiaomi_gold_manifest/tree/OS3.0.5.0.VNQMIXM)); the kernel image is Google's GKI. The device tree blob and its overlay are built from source too |
 | Proprietary files | [android_vendor_xiaomi_gold](https://github.com/Star-caorui/android_vendor_xiaomi_gold) |
 
 ## Builds
