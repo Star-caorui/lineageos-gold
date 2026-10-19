@@ -18,7 +18,7 @@ Status: Merged (fixed in a release), Fixing, Open (confirmed, not started), Upst
 | Health HAL judges the charge counter's unit against two different capacities | Betterr | 2026-10-16 | Merged (2026101701) | One path used the design capacity, the other the capacity the battery reports. |
 | Audio parameter parser keeps running unregistered when it fails to register | Betterr | 2026-10-16 | Merged (2026101701) |  |
 | Stock init scripts make some device nodes and camera files world-writable | Betterr | 2026-10-16 | Open | 0666 and 0777 copied from stock; SELinux still limits access. Tightening them needs each feature tried on a phone. |
-| Offline charging screen polls the panel state every 200 ms | Betterr | 2026-10-16 | Fixing | It did so to restore the backlight, which the panel lost at every power-up. The panels now send their last brightness again after every power-up (`lineage-24.0` of [android_kernel_xiaomi_gold-huaqin_modules](https://github.com/Star-caorui/android_kernel_xiaomi_gold-huaqin_modules)) and the device tree no longer polls. On the test unit the charger screen comes back lit on a key press. |
+| Offline charging screen polls the panel state every 200 ms | Betterr | 2026-10-16 | Fixing | It did so to restore the backlight, which the panel lost every time the display was enabled again. The vendor modules now send the backlight level again whenever the display comes back (`lineage-24.0` of [android_kernel_xiaomi_gold-modules](https://github.com/Star-caorui/android_kernel_xiaomi_gold-modules)) and the device tree no longer polls. On the test unit the charger screen comes back lit on a key press. |
 | Settings > System > Diagnostic screen is broken | ukriu | 2026-10-16 | Merged (2026101701) | It showed the battery at 0 % of its original capacity and 0 % of the storage's lifetime left. The health service now derives the battery's state of health from its full charges (99 % on the test unit), and vold reads the UFS health descriptor (70 % left). |
 | Bluetooth call uses the phone's microphone instead of the earbuds' | ukriu | 2026-10-16 | Need info |  |
 | Release notes: list the commits since the previous release | ukriu | 2026-10-16 | Open |  |
@@ -41,7 +41,7 @@ Status: Merged (fixed in a release), Fixing, Open (confirmed, not started), Upst
 | Burn-in protection | ukriu | 2026-10-14 | Not a bug | AOSP's burn-in protection (`config_enableBurnInProtection`) has been on in every release, as on LineageOS's other OLED devices. |
 | Freeform windows | ukriu | 2026-10-14 | Not planned |  |
 | Writes to the other slot after an OTA are lost on reboot | ukriu | 2026-10-14 | Not planned |  |
-| Offline charging loops on the Redmi logo when an alarm is set | Betterr | 2026-10-14 | Fixing | Seen on the test unit only. It did not happen there on 2026-10-19 with an alarm set, on a build with the vendor modules built from source and the battery and panel changes on `lineage-24.0`; which change fixed it is not known. |
+| Offline charging loops on the Redmi logo when an alarm is set | Betterr | 2026-10-14 | Open | Seen on the test unit only. On 2026-10-19 the loop did not come back with an alarm set, but entering offline charging took one or two restarts more than the usual one. Cause not found; the reset leaves no crash record. |
 | WCDMA does not work | ukriu | 2026-10-14 | Not a bug |  |
 | Flashlight cannot be turned off from the control center | Niko | 2026-10-14 | Need info |  |
 | Jitter when opening an app a second time | yuuki | 2026-10-14 | Merged (2026101403) |  |
