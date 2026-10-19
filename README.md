@@ -7,7 +7,7 @@ Unofficial LineageOS for the Redmi Note 13 5G. Test builds: userdebug, signed wi
 | Downloads | [Releases](https://github.com/Star-caorui/lineageos-gold/releases) |
 | How to build | [local_manifests](https://github.com/Star-caorui/local_manifests) |
 | Device tree | [android_device_xiaomi_gold](https://github.com/Star-caorui/android_device_xiaomi_gold), forked from [Dhterech's](https://github.com/Dhterech/android_device_xiaomi_gold) |
-| Kernel | [android_kernel_xiaomi_gold_manifest](https://github.com/Star-caorui/android_kernel_xiaomi_gold_manifest): the sources of the vendor modules, built from source the way stock's are ([which match stock's](https://github.com/Star-caorui/android_kernel_xiaomi_gold_manifest/tree/OS3.0.5.0.VNQMIXM)); the kernel image is Google's GKI. The device tree blob and its overlay are built from source too |
+| Kernel | [android_kernel_xiaomi_gold_manifest](https://github.com/Star-caorui/android_kernel_xiaomi_gold_manifest): the vendor modules, the device tree blob and its overlay, built from source the way stock's are ([they match stock's](https://github.com/Star-caorui/android_kernel_xiaomi_gold_manifest/tree/OS3.0.5.0.VNQMIXM)); the kernel image is Google's GKI |
 | Proprietary files | [android_vendor_xiaomi_gold](https://github.com/Star-caorui/android_vendor_xiaomi_gold) |
 
 ## Builds
@@ -48,7 +48,7 @@ The device tree also carries the configuration for the Indian and Global models 
 
 ## Status
 
-The rows are the items of LineageOS's [device support requirements](https://github.com/LineageOS/charter/blob/main/device-support-requirements.md), in its order. "Not tested" means nobody has tried it yet, not that it is known to be broken. "Not on stock" means the stock OS does not have it either, so the requirement does not apply.
+The rows are the items of LineageOS's [device support requirements](https://github.com/LineageOS/charter/blob/main/device-support-requirements.md), in its order. "Not tested" means nobody has tried it yet, not that it is known to be broken. Each "Not supported" is explained under the table.
 
 <table>
   <tr><th></th><th></th><th>gold</th><th>iron</th></tr>
@@ -74,7 +74,7 @@ The rows are the items of LineageOS's [device support requirements](https://gith
   <tr><td>Bluetooth</td><td>Bluetooth</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>Same MAC address as on the stock OS</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>Bluetooth tethering</td><td align="center">Not tested</td><td align="center">Not tested</td></tr>
-  <tr><td></td><td>aptX</td><td align="center">Not on stock</td><td align="center">Not on stock</td></tr>
+  <tr><td></td><td>aptX</td><td align="center">Not supported</td><td align="center">Not supported</td></tr>
   <tr><td>Camera</td><td>Front facing and rear camera</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>All rear cameras (two or more)</td><td align="center">Not tested</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>All front cameras (two or more)</td><td align="center">No hardware</td><td align="center">No hardware</td></tr>
@@ -82,10 +82,10 @@ The rows are the items of LineageOS's [device support requirements](https://gith
   <tr><td></td><td>Video recording, front camera</td><td align="center">Not tested</td><td align="center">Not tested</td></tr>
   <tr><td>Codecs</td><td>Hardware encoding and decoding of the codecs the stock OS supports</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>Display</td><td>Same resolution as the stock OS</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
-  <tr><td></td><td>Same density as the stock OS</td><td align="center">440, stock is 480</td><td align="center">440, stock is 480</td></tr>
+  <tr><td></td><td>Same density as the stock OS</td><td align="center">Not supported</td><td align="center">Not supported</td></tr>
   <tr><td></td><td>Additional non-USB display interfaces</td><td align="center">No hardware</td><td align="center">No hardware</td></tr>
   <tr><td></td><td>Display output the stock OS supports (Miracast)</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
-  <tr><td></td><td>HDR10 playback</td><td align="center">Not on stock</td><td align="center">Not on stock</td></tr>
+  <tr><td></td><td>HDR10 playback</td><td align="center">Not supported</td><td align="center">Not supported</td></tr>
   <tr><td>NFC</td><td>NFC</td><td align="center">No hardware</td><td align="center">PASS</td></tr>
   <tr><td>Fingerprint Sensor</td><td>Fingerprint sensor</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>IR</td><td>IR blaster</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
@@ -105,6 +105,11 @@ The rows are the items of LineageOS's [device support requirements](https://gith
   <tr><td>LineageOS Recovery</td><td>Lineage Recovery works for installation</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>Addon packages</td><td>Addon packages can be installed through Lineage Recovery</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
 </table>
+
+- aptX and HDR10 playback: the stock OS does not have them either.
+- Density: 440 dpi; the stock OS uses 480.
+- Verity on the vendor image: dm-verity is off in these builds (`--set_hashtree_disabled_flag` in vbmeta).
+- Factory Reset Protection: left off, because a build without Google apps cannot clear what a Google-equipped system left on the FRP partition.
 
 Measured on 23.2:
 
