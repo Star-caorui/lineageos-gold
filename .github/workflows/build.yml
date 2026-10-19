@@ -1,0 +1,327 @@
+name: Build
+
+# Builds one package from source on a Google Cloud spot VM (ci/vm-build.sh) and turns it into a draft
+# release. Started by hand only; nothing here runs on pull requests.
+on:
+  workflow_dispatch:
+    inputs:
+      device_ref:
+        description: Device tree branch, tag or commit
+        default: lineage-24.0
+      vendor_ref:
+        description: Proprietary files branch, tag or commit
+        default: lineage-24.0
+      kernel_ref:
+        description: Kernel lists branch, tag or commit (android_device_xiaomi_gold-kernels)
+        default: lineage-24.0
+      gki:
+        description: GOLD_GKI
+        type: choice
+        options: [stock, latest]
+        default: stock
+      snapshot_url:
+        description: Manifest snapshot of an earlier build to rebuild it exactly (overrides the refs above)
+        default: ''
+      sync_only:
+        description: Stop after the sync (to try the workflow or time the sync without building)
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: build
+  cancel-in-progress: false
+
+env:
+  PROJECT: gold-build
+  REGION: asia-northeast2
+  MACHINE: c2d-standard-32
+  BUCKET: gold-build-ci-osaka
+
+jobs:
+  # Three jobs so that each one's part of the summary shows as soon as it is done: GitHub shows a
+  # job's summary only when the job ends. What the build is made from is known after the sync.
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      started: ${{ steps.vm.outputs.started }}
+      disks: ${{ steps.vm.outputs.disks }}
+      pos: ${{ steps.follow.outputs.pos }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/678283418661/locations/global/workloadIdentityPools/github/providers/lineageos-gold
+          service_account: gold-ci@gold-build.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      # For the VM to fetch again signed in what googlesource refused to give it anonymously (HTTP
+      # 429). The VM reads the cookie from Secret Manager.
+      - name: Hand the googlesource cookie to the VM
+        env:
+          COOKIE: ${{ secrets.GOOGLESOURCE_COOKIE }}
+        run: |
+          [ -n "$COOKIE" ] || { echo "No GOOGLESOURCE_COOKIE secret: the VM fetches anonymously."; exit 0; }
+          printf '%s' "$COOKIE" | gcloud secrets versions add googlesource-cookie --project $PROJECT --data-file=- --format none
+          gcloud secrets versions list googlesource-cookie --project $PROJECT --filter 'state!=DESTROYED' \
+              --sort-by '~createTime' --format 'value(name.basename())' | tail -n +2 \
+            | xargs -r -n1 gcloud secrets versions destroy --secret googlesource-cookie --project $PROJECT --quiet --format none
+
+      - name: Start the build VM
+        id: vm
+        env:
+          DEVICE_REF: ${{ inputs.device_ref }}
+          VENDOR_REF: ${{ inputs.vendor_ref }}
+          KERNEL_REF: ${{ inputs.kernel_ref }}
+          GKI: ${{ inputs.gki }}
+          SNAPSHOT_URL: ${{ inputs.snapshot_url }}
+          SYNC_ONLY: ${{ inputs.sync_only }}
+        run: |
+          VM=gold-build-$GITHUB_RUN_ID
+          files=startup-script=ci/vm-build.sh
+          if [ -n "$SNAPSHOT_URL" ]; then printf '%s' "$SNAPSHOT_URL" > snapshot-url.txt; files=$files,snapshot-url=snapshot-url.txt; fi
+          # Two local SSDs (750 GB) and a small boot disk where to be had: the same speed as one big
+          # persistent disk for this build at about a third of the disk cost. Otherwise a 450 GB one.
+          for disks in "50 750" "450 0"; do
+            read pd ssd <<< "$disks"
+            ssdargs=(); for i in $(seq $((ssd / 375))); do ssdargs+=(--local-ssd=interface=NVME); done
+            for zone in $REGION-a $REGION-b $REGION-c; do
+              if gcloud compute instances create $VM --project $PROJECT --zone $zone --machine-type $MACHINE \
+                  --provisioning-model SPOT --instance-termination-action DELETE --max-run-duration 6h \
+                  --image-family ubuntu-2404-lts-amd64 --image-project ubuntu-os-cloud \
+                  --boot-disk-size ${pd}GB --boot-disk-type pd-balanced "${ssdargs[@]}" \
+                  --service-account gold-builder@$PROJECT.iam.gserviceaccount.com --scopes cloud-platform \
+                  --labels purpose=gold-build,run=$GITHUB_RUN_ID \
+                  --metadata-from-file $files \
+                  --metadata "run-id=$GITHUB_RUN_ID,bucket=$BUCKET,device-ref=$DEVICE_REF,vendor-ref=$VENDOR_REF,kernel-ref=$KERNEL_REF,gki=$GKI,sync-only=$SYNC_ONLY"; then
+                echo "started=$(date +%s)" >> $GITHUB_OUTPUT
+                echo "disks=$disks" >> $GITHUB_OUTPUT
+                exit 0
+              fi
+            done
+          done
+          echo "No spot capacity in $REGION" >&2
+          exit 1
+
+      - name: Sync (on the VM)
+        id: follow
+        run: ci/follow-log.sh 0 '^== \+[0-9:]+ synced'
+
+      - name: Write what is built from what
+        if: always()
+        env:
+          DEVICE_REF: ${{ inputs.device_ref }}
+          VENDOR_REF: ${{ inputs.vendor_ref }}
+          KERNEL_REF: ${{ inputs.kernel_ref }}
+          GKI: ${{ inputs.gki }}
+          SNAPSHOT_URL: ${{ inputs.snapshot_url }}
+        run: |
+          for f in commits.txt sync-times.md; do gcloud storage cp gs://$BUCKET/runs/$GITHUB_RUN_ID/out/$f . 2>/dev/null || true; done
+          asked() {
+            [ -n "$SNAPSHOT_URL" ] && { echo "snapshot"; return; }
+            case $1 in
+              android_device_xiaomi_gold) echo "$DEVICE_REF" ;;
+              android_vendor_xiaomi_gold) echo "$VENDOR_REF" ;;
+              android_device_xiaomi_gold-kernels) echo "$KERNEL_REF" ;;
+              *) echo "lineage-24.0" ;;
+            esac
+          }
+          {
+            echo "GOLD_GKI=\`$GKI\`${SNAPSHOT_URL:+, rebuilt from [a manifest snapshot]($SNAPSHOT_URL)}"
+            echo
+            echo "| Repository | Requested | Built from |"
+            echo "| --- | --- | --- |"
+            if [ -f commits.txt ]; then
+              while read repo sha; do
+                r=${repo##*/}
+                echo "| $r | \`$(asked $r)\` | [\`${sha:0:12}\`](https://github.com/Star-caorui/$r/commit/$sha) |"
+              done < commits.txt
+            else
+              for r in android_device_xiaomi_gold android_vendor_xiaomi_gold android_device_xiaomi_gold-kernels; do
+                echo "| $r | \`$(asked $r)\` | not synced |"
+              done
+            fi
+            echo
+            if [ -f sync-times.md ]; then echo "### Times"; echo; cat sync-times.md; echo; fi
+          } >> $GITHUB_STEP_SUMMARY
+
+  build:
+    needs: sync
+    if: ${{ !inputs.sync_only }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    outputs:
+      gb: ${{ steps.files.outputs.gb }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/678283418661/locations/global/workloadIdentityPools/github/providers/lineageos-gold
+          service_account: gold-ci@gold-build.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Build (on the VM)
+        id: follow
+        run: ci/follow-log.sh ${{ needs.sync.outputs.pos }}
+
+      - name: Fetch the diagnostics
+        if: always()
+        run: |
+          mkdir -p diag
+          gcloud storage cp "gs://$BUCKET/runs/$GITHUB_RUN_ID/diag/*" diag/ || true
+
+      - name: Fetch the files
+        id: files
+        run: |
+          mkdir out
+          gcloud storage cp "gs://$BUCKET/runs/$GITHUB_RUN_ID/out/*" out/
+          ls -la out
+          cat out/build-info.txt
+          echo "gb=$(du -cb out | tail -1 | awk '{print $1 / 1e9}')" >> $GITHUB_OUTPUT
+
+      - name: Make the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          . <(sed 's/^/export /' out/build-info.txt)
+          for v in incremental lineage android; do
+            [ -n "${!v}" ] || { echo "build-info.txt has no $v" >&2; exit 1; }
+          done
+          day=$(TZ=Asia/Shanghai date +%Y%m%d)
+          n=$(gh release list --limit 100 --json tagName --jq "[.[] | select(.tagName | contains(\"Vanilla-$day\"))] | length")
+          stamp=$day$(printf %02d $((n + 1)))
+          name=LineageOS-gold-Unofficial-$lineage-Vanilla-$stamp
+          mv out/package.zip out/$name.zip
+          (cd out && sha256sum $name.zip boot.img vendor_boot.img dtbo.img vbmeta.img vbmeta_system.img vbmeta_vendor.img > SHA256SUMS)
+          prev=$(gh release list --limit 20 --exclude-drafts --json tagName,isLatest --jq '.[0].tagName')
+          prevbody=$(gh release view "$prev" --json body --jq .body)
+          section() { printf '%s\n' "$prevbody" | awk -v h="## $1" '$0==h{p=1;next} /^## /{p=0} p'; }
+          {
+            echo "Unofficial test build: userdebug, test-keys. Not affiliated with Xiaomi, MediaTek or the LineageOS project."
+            echo
+            echo "| | |"
+            echo "| --- | --- |"
+            echo "| System | LineageOS $lineage (Android $android) |"
+            echo "| Build | $date, incremental \`$incremental\` |"
+            echo
+            echo "## Changes"
+            echo
+            echo "Since [${prev##*-}](https://github.com/$GITHUB_REPOSITORY/releases/tag/$prev):"
+            echo
+            echo "- TODO"
+            echo
+            echo "## Known issues"
+            section "Known issues"
+            echo "## Notes"
+            section "Notes"
+            echo "## Installing"
+            echo
+            echo "See [Installing](https://github.com/$GITHUB_REPOSITORY#installing) in the README."
+          } > notes.md
+          gh release create "$name" --draft --prerelease --target main \
+            --title "LineageOS $lineage | Unofficial | Android $android | $stamp" --notes-file notes.md \
+            out/$name.zip out/boot.img out/vendor_boot.img out/dtbo.img out/vbmeta.img out/vbmeta_system.img \
+            out/vbmeta_vendor.img out/SHA256SUMS out/manifest-snapshot.xml out/kernel-manifest-snapshot.xml
+          echo "Draft release [\`$name\`](https://github.com/$GITHUB_REPOSITORY/releases), incremental \`$incremental\`." >> $GITHUB_STEP_SUMMARY
+
+      - name: Write where the build time went
+        if: always()
+        run: |
+          [ -f diag/ninja_log.gz ] || exit 0
+          { echo "### Times"; echo; python3 ci/build-times.py diag/ninja_log.gz; echo
+            [ -f diag/ccache.txt ] && { echo '```'; grep -E 'Hits|Misses|Cache size' diag/ccache.txt; echo '```'; }
+          } >> $GITHUB_STEP_SUMMARY
+
+      - name: Sign where the files come from
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: |
+            out/*.zip
+            out/*.img
+            out/SHA256SUMS
+            out/manifest-snapshot.xml
+            out/kernel-manifest-snapshot.xml
+
+
+  clean-up:
+    needs: [sync, build]
+    if: always()
+    runs-on: ubuntu-latest
+    # Every step has always(): once a run is cancelled, a step without a condition is skipped.
+    steps:
+      - uses: actions/checkout@v7
+        if: always()
+
+      - uses: google-github-actions/auth@v3
+        if: always()
+        with:
+          workload_identity_provider: projects/678283418661/locations/global/workloadIdentityPools/github/providers/lineageos-gold
+          service_account: gold-ci@gold-build.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v3
+        if: always()
+
+      # Here rather than in the build job so that a run that fails or is cancelled while syncing has it too.
+      - name: Fetch the whole log and the diagnostics
+        if: always()
+        run: |
+          mkdir -p diag
+          gcloud storage cp gs://$BUCKET/runs/$GITHUB_RUN_ID/build.log diag/ || true
+          gcloud storage cp "gs://$BUCKET/runs/$GITHUB_RUN_ID/diag/*" diag/ || true
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: diagnostics
+          path: diag/
+          if-no-files-found: ignore
+
+      - name: Delete the VM
+        if: always()
+        env:
+          STARTED: ${{ needs.sync.outputs.started }}
+          DISKS: ${{ needs.sync.outputs.disks }}
+          GB: ${{ needs.build.outputs.gb }}
+        run: |
+          # Look the VM up by name instead of trusting ZONE: a run cancelled while the VM was being created
+          # never got to record the zone. Whatever this misses is deleted by --max-run-duration.
+          vm=$(gcloud compute instances list --project $PROJECT --filter "name=gold-build-$GITHUB_RUN_ID" \
+            --format 'value(zone.basename(),creationTimestamp)' 2>/dev/null || true)
+          zone=$(echo "$vm" | cut -f1); created=$(echo "$vm" | cut -f2)
+          [ -z "$zone" ] || gcloud compute instances delete gold-build-$GITHUB_RUN_ID --project $PROJECT --zone $zone --quiet || true
+          # Priced from when the VM was created; from when the sync job created it if it is already gone.
+          [ -z "$created" ] || STARTED=$(date -d "$created" +%s)
+          [ -n "$STARTED" ] || exit 0
+          secs=$(( $(date +%s) - STARTED ))
+          gb=${GB:-0}
+          {
+            echo "### Cost"
+            echo
+            TOKEN=$(gcloud auth print-access-token) python3 ci/estimate-cost.py $REGION $MACHINE ${DISKS:-450 0} $secs $gb \
+              || echo "Could not price the run."
+            echo
+            echo "Estimated from the public price list. The exact cost is in the billing reports about a day later, under the label \`run=$GITHUB_RUN_ID\`."
+          } >> $GITHUB_STEP_SUMMARY
+
+      # After the VM is gone, so that listing the bucket (a minute for ccache's many files) costs nothing.
+      - name: Write what the bucket holds
+        if: always()
+        run: |
+          gcloud storage cp gs://$BUCKET/runs/$GITHUB_RUN_ID/out/storage.txt . 2>/dev/null || true
+          for p in $(gcloud storage ls gs://$BUCKET/repo-cache/ 2>/dev/null | sed "s|gs://$BUCKET/||") ccache-files/ runs/; do
+            gcloud storage ls gs://$BUCKET/$p 2>/dev/null | xargs -r -P 16 -n 1 gcloud storage du 2>/dev/null \
+              | awk -v p=$p '$2 !~ /\/$/ { s += $1; n++ } END { print p, s + 0, n + 0 }' || true
+          done > sizes.txt
+          { echo "### Storage"; echo
+            TOKEN=$(gcloud auth print-access-token) python3 ci/storage-status.py $REGION sizes.txt storage.txt diag/ccache.txt \
+              || echo "Could not list the bucket."
+          } >> $GITHUB_STEP_SUMMARY
