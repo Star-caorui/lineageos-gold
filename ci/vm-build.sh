@@ -227,6 +227,9 @@ say "kernel"
 # README has it; for a rebuild, from the kernel sources' snapshot of that build.
 KT=out-kernel/xiaomi_gold
 mkdir -p $KT && touch $KT/.out-dir
+# Its own .repo, with the Android tree's copy of repo, as build_kernel makes it: without one, repo init
+# finds the Android tree's .repo above and initialises that instead.
+mkdir -p $KT/.repo && { [ -d $KT/.repo/repo ] || cp -R .repo/repo $KT/.repo/repo; } || exit 1
 (cd $KT && repo init -q -u https://github.com/Star-caorui/android_kernel_xiaomi_gold_manifest -b lineage-24.0 \
   --depth=1 --no-use-superproject) || exit 1
 if [ -n "$SNAPSHOT_URL" ]; then
