@@ -41,7 +41,7 @@ trap finish EXIT
 ( while sleep 20; do gcloud storage cp $LOG $R/build.log --quiet 2>/dev/null; done ) &
 
 status running
-say "run $RUN: device $DEVICE_REF, vendor $VENDOR_REF, GOLD_GKI=$GKI"
+say "run $RUN: device $DEVICE_REF, vendor $VENDOR_REF, GKI $GKI"
 nproc; free -g | sed -n 2p; df -h / | tail -1
 
 # The VM comes with local SSDs when they were to be had (cheaper than a big persistent disk, and the
@@ -222,19 +222,32 @@ ccache -M 50G > /dev/null; ccache -z > /dev/null
 ( while sleep 1200; do gcloud storage rsync -r $CCACHE_DIR $C --quiet 2>/dev/null; done ) &
 
 say "kernel"
-# The vendor modules from source and Google's GKI builds, as local_manifests' README has it; for a
-# rebuild, from the kernel sources' snapshot of that build.
-KM=
+# LineageOS's build_kernel builds the kernel in out-kernel/xiaomi_gold, but syncs only the manifests
+# LineageOS hosts, so android_kernel_xiaomi_gold_manifest is synced there first, as local_manifests'
+# README has it; for a rebuild, from the kernel sources' snapshot of that build.
+KT=out-kernel/xiaomi_gold
+mkdir -p $KT && touch $KT/.out-dir
+(cd $KT && repo init -q -u https://github.com/Star-caorui/android_kernel_xiaomi_gold_manifest -b lineage-24.0 \
+  --depth=1 --no-use-superproject) || exit 1
 if [ -n "$SNAPSHOT_URL" ]; then
-  curl -sfo /tmp/kernel-manifest-snapshot.xml "${SNAPSHOT_URL%/*}/kernel-manifest-snapshot.xml" || exit 1
-  KM=/tmp/kernel-manifest-snapshot.xml
+  curl -sfo $KT/.repo/manifests/snapshot.xml "${SNAPSHOT_URL%/*}/kernel-manifest-snapshot.xml" || exit 1
+  (cd $KT && repo init -q -m snapshot.xml) || exit 1
 fi
-KERNEL_MANIFEST=$KM device/xiaomi/gold/build-kernel.sh || exit 1
-(cd out-kernel/gold && repo manifest -r -o $STAGE/kernel-manifest-snapshot.xml) || exit 1
+(cd $KT && repo sync -q -c --no-tags --force-sync) || exit 1
+(cd $KT && repo manifest -r -o $STAGE/kernel-manifest-snapshot.xml) || exit 1
+# the GKI build: stock's, or the newest the manifest's gki.sha256 lists
+case $GKI in
+  stock) GKI_BUILD=15511674 ;;
+  latest) GKI_BUILD=$(awk '/^[0-9]/ { print $1 }' $KT/manifest/gki.sha256 | sort -n | tail -1) ;;
+  *) GKI_BUILD=$GKI ;;
+esac
+export GKI_BUILD
+say "GKI build $GKI_BUILD"
 
 say "build"
-export GOLD_GKI=$GKI
 set +u
+# breakfast runs build_kernel itself; the kernel sources are synced above
+export SKIP_KERNEL_SYNC=1
 source build/envsetup.sh
 breakfast gold userdebug || exit 1
 m bacon || exit 1
@@ -254,6 +267,7 @@ prop() { cat $P/system/build.prop $P/product/etc/build.prop | grep -m1 "^$1=" | 
   echo "security_patch=$(prop ro.build.version.security_patch)"
   echo "date=$(date -u +%Y-%m-%d)"
   echo "gki=$GKI"
+  echo "gki_build=$GKI_BUILD"
 } > $STAGE/build-info.txt
 cat $STAGE/build-info.txt
 gcloud storage cp $STAGE/* $R/out/ --quiet || exit 1

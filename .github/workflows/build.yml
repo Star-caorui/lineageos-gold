@@ -12,7 +12,7 @@ on:
         description: Proprietary files branch, tag or commit
         default: lineage-24.0
       gki:
-        description: GOLD_GKI
+        description: "GKI build: stock (15511674, as stock ships) or latest (the newest the kernel manifest's gki.sha256 lists)"
         type: choice
         options: [stock, latest]
         default: stock
@@ -128,7 +128,7 @@ jobs:
             esac
           }
           {
-            echo "GOLD_GKI=\`$GKI\`${SNAPSHOT_URL:+, rebuilt from [a manifest snapshot]($SNAPSHOT_URL)}"
+            echo "GKI \`$GKI\`${SNAPSHOT_URL:+, rebuilt from [a manifest snapshot]($SNAPSHOT_URL)}"
             echo
             echo "| Repository | Requested | Built from |"
             echo "| --- | --- | --- |"
