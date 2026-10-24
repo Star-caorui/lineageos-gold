@@ -13,7 +13,6 @@ Status: Merged (fixed in a release), Fixing, Open (confirmed, not started), Upst
 | Bluetooth call uses the phone's microphone instead of the earbuds' | ukriu | 2026-10-16 | Need info |  |
 | LDAC limited to 16 bits per sample | ukriu | 2026-10-15 | Need info |  |
 | NFC turns on but does not read anything | affan | 2026-10-15 | Need info |  |
-| Dolby Atmos | Thakur | 2026-10-15 | Not planned | Stock's effect libraries (Dolby, MiSound, spatial audio) are not included. |
 | User build to pass Play Integrity | Thakur | 2026-10-15 | Not planned |  |
 | Sunlight mode | yuuki | 2026-10-15 | Not possible | The panel has one brightness range, and its upper half is the high brightness mode that auto-brightness already uses. |
 | Fast charging settles at 8–10 W | ukriu | 2026-10-14 | Open | With the screen on, Xiaomi's thermal daemon raises the charging thermal level. Stock switches it between scene profiles; nothing does here, so it stays on the default one. With the daemon stopped it held about 20 W. |
@@ -22,7 +21,6 @@ Status: Merged (fixed in a release), Fixing, Open (confirmed, not started), Upst
 | Charger-connected vibration is too long | ukriu | 2026-10-14 | Not a bug |  |
 | Vibration intensity slider | ukriu | 2026-10-14 | Not planned |  |
 | Freeform windows | ukriu | 2026-10-14 | Not planned |  |
-| Writes to the other slot after an OTA are lost on reboot | ukriu | 2026-10-14 | Not planned |  |
 | Offline charging loops on the Redmi logo when an alarm is set | Betterr | 2026-10-14 | Open | Seen on the test unit only. On 2026-10-19 the loop did not come back with an alarm set, but entering offline charging took one or two restarts more than the usual one. Cause not found; the reset leaves no crash record. |
 | WCDMA does not work | ukriu | 2026-10-14 | Not a bug |  |
 | Game space | yuuki | 2026-10-14 | Not planned |  |
@@ -50,5 +48,4 @@ Status: Merged (fixed in a release), Fixing, Open (confirmed, not started), Upst
 | SAR and front colour sensors | Betterr | 2026-10-13 | Not planned | Present, unused. |
 | MPEG-4 and H.263 hardware encoding | Betterr | 2026-10-13 | Open | Not ported. |
 | Closed hotspot connections stay tracked for up to five days | Betterr | 2026-10-13 | Not planned | A behaviour of AOSP's tethering offload, with no measurable cost. |
-| ADB in recovery is not pre-authorised | Betterr | 2026-10-13 | Not planned |  |
 | Key attestation with device IDs | Betterr | 2026-10-13 | Not possible | Fails with `CANNOT_ATTEST_IDS`. Ordinary attestation works. |
