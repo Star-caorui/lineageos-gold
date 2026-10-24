@@ -12,10 +12,10 @@ on:
         description: Proprietary files branch, tag or commit
         default: lineage-24.0
       gki:
-        description: "GKI build: stock (15511674, as stock ships) or latest (the newest the kernel manifest's gki.sha256 lists)"
+        description: "GKI build: latest (the newest the kernel manifest's gki.sha256 lists) or stock (15511674, as stock ships)"
         type: choice
-        options: [stock, latest]
-        default: stock
+        options: [latest, stock]
+        default: latest
       snapshot_url:
         description: Manifest snapshot of an earlier build to rebuild it exactly (overrides the refs above)
         default: ''
