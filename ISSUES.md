@@ -30,7 +30,6 @@ Status: Merged (fixed in a release), Fixing, Open (confirmed, not started), Upst
 | LDAC limited to 16 bits per sample | ukriu | 2026-10-15 | Need info |  |
 | 5G (NSA) never shows, stuck on LTE | affan | 2026-10-15 | Merged (2026101701) | MediaTek's RIL offers NR only with EN-DC on, and the modem had it off for that SIM. Turning EN-DC on with `setNrDualConnectivityState` brought 5G up and survived a reboot. A small system app now turns it on at boot and when the carrier configuration changes. Not tested on our unit, which has no SIM. |
 | NFC turns on but does not read anything | affan | 2026-10-15 | Need info |  |
-| Rear cameras fail after a dirty flash | affan | 2026-10-15 | Not a bug |  |
 | Dolby Atmos | Thakur | 2026-10-15 | Not planned | Stock's effect libraries (Dolby, MiSound, spatial audio) are not included. |
 | User build to pass Play Integrity | Thakur | 2026-10-15 | Not planned |  |
 | Sunlight mode | yuuki | 2026-10-15 | Not possible | The panel has one brightness range, and its upper half is the high brightness mode that auto-brightness already uses. |
@@ -46,7 +45,6 @@ Status: Merged (fixed in a release), Fixing, Open (confirmed, not started), Upst
 | Flashlight cannot be turned off from the control center | Niko | 2026-10-14 | Need info |  |
 | Jitter when opening an app a second time | yuuki | 2026-10-14 | Merged (2026101403) |  |
 | Volume keys do not change call volume | yuuki | 2026-10-14 | Merged (2026101401) |  |
-| QR scanner tile stuck on "updating" | yuuki | 2026-10-14 | Not a bug |  |
 | Game space | yuuki | 2026-10-14 | Not planned |  |
 | Leica / HyperOS camera modules show a black preview | Asnalstan, yuuki | 2026-10-14 | Not planned | The app looks up a constructor of `StreamConfigurationMap` that only Android 14 had. Adding it back takes two patches to `frameworks/base`, as crDroid, Lunaris and AxionOS carry; we do not. |
 | Flashlight strength control | Thakur | 2026-10-14 | Not planned |  |
