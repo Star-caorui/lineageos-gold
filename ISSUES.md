@@ -25,7 +25,6 @@ Status: Merged (fixed in a release), Fixing, Open (confirmed, not started), Upst
 | Writes to the other slot after an OTA are lost on reboot | ukriu | 2026-10-14 | Not planned |  |
 | Offline charging loops on the Redmi logo when an alarm is set | Betterr | 2026-10-14 | Open | Seen on the test unit only. On 2026-10-19 the loop did not come back with an alarm set, but entering offline charging took one or two restarts more than the usual one. Cause not found; the reset leaves no crash record. |
 | WCDMA does not work | ukriu | 2026-10-14 | Not a bug |  |
-| Flashlight cannot be turned off from the control center | Niko | 2026-10-14 | Need info |  |
 | Game space | yuuki | 2026-10-14 | Not planned |  |
 | Leica / HyperOS camera modules show a black preview | Asnalstan, yuuki | 2026-10-14 | Not planned | The app looks up a constructor of `StreamConfigurationMap` that only Android 14 had. Adding it back takes two patches to `frameworks/base`, as crDroid, Lunaris and AxionOS carry; we do not. |
 | Flashlight strength control | Thakur | 2026-10-14 | Not planned |  |
@@ -36,8 +35,6 @@ Status: Merged (fixed in a release), Fixing, Open (confirmed, not started), Upst
 | Two SELinux denials logged now and then: the positioning daemon reading a property, the media provider at the root directory | Betterr | 2026-10-13 | Open | No effect seen. Not traced. |
 | Decoding several DNG files at once can crash the app (a race in AOSP's DNG library) | Betterr | 2026-10-13 | Not planned | About once in twenty tries with four threads. Not patched. |
 | Screen lock cannot be set after setup (FRP) | ukriu | 2026-10-13 | Merged (2026101303) | Factory reset protection is left off: a build without Google apps cannot clear what a Google-equipped system left on the FRP partition. With the bootloader unlocked, `fastboot erase frp` removes it. |
-| KernelSU finds no ramdisk to patch | ukriu | 2026-10-13 | Merged (2026101303) |  |
-| No touch in recovery | ukriu | 2026-10-13 | Merged (2026101303) |  |
 | Bluetooth tethering does not connect | ukriu | 2026-10-13 | Need info |  |
 | Dual SIM | Betterr | 2026-10-13 | Not tested |  |
 | China Telecom SIM | Betterr | 2026-10-13 | Not tested |  |
