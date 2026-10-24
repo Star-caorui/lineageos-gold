@@ -19,7 +19,7 @@ Unofficial LineageOS for the Redmi Note 13 5G. Test builds: userdebug, signed wi
 ## Installing
 
 - Unlock the bootloader first. Do not relock it while this is installed.
-- The package also writes the firmware: preloader, lk, tee, modem and seven more partitions, taken from Global `OS3.0.5.0.VNQMIXM`.
+- The package also writes the firmware: preloader, tee, modem and seven more partitions, taken from Global `OS3.0.5.0.VNQMIXM`. It leaves lk as it is.
 - The device has A/B slots. If the new system does not start, the phone returns to the old one.
 - If you installed one of our early ROMs, you will very likely need to wipe data.
 
