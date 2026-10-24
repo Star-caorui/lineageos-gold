@@ -54,6 +54,4 @@ Status: Merged (fixed in a release), Fixing, Open (confirmed, not started), Upst
 | MPEG-4 and H.263 hardware encoding | Betterr | 2026-10-13 | Open | Not ported. |
 | Closed hotspot connections stay tracked for up to five days | Betterr | 2026-10-13 | Not planned | A behaviour of AOSP's tethering offload, with no measurable cost. |
 | ADB in recovery is not pre-authorised | Betterr | 2026-10-13 | Not planned |  |
-| Hotspot on another band than Wi-Fi | Betterr | 2026-10-13 | Not possible | The Wi-Fi driver builds MT6833 as a 1x1 chip (`SOC2_1X1`), and its firmware turns dual-band concurrency off at boot (`DBDC:DISABLE`), so the hotspot shares the Wi-Fi channel. |
-| Hotspot hardware offload | Betterr | 2026-10-13 | Not possible | The modem answers MDDP's feature check without the Wi-Fi hotspot bit (`feature(3)`, no `MDDP_FEATURE_MDDP_WH`), so the driver stays disabled and stock's `tetheroffloadservice` would have nothing to drive. |
 | Key attestation with device IDs | Betterr | 2026-10-13 | Not possible | Fails with `CANNOT_ATTEST_IDS`. Ordinary attestation works. |
