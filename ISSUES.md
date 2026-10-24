@@ -9,7 +9,6 @@ Status: Merged (fixed in a release), Fixing, Open (confirmed, not started), Upst
 | The stock battery driver reports a cycle count in the thousands | Betterr | 2026-10-17 | Open | 1668 on the test unit and 4519 on ukriu's. The driver is now built from source the way stock builds it, and reports the same. Shown as is in the device diagnostics. |
 | Multitasking lags below 30 % battery | yuuki | 2026-10-17 | Open |  |
 | UI lags right after leaving a game | yuuki | 2026-10-17 | Open |  |
-| Move the init_boot ramdisk from vendor_boot to boot | ukriu | 2026-10-17 | Not possible |  |
 | Stock init scripts make some device nodes and camera files world-writable | Betterr | 2026-10-16 | Open | 0666 and 0777 copied from stock; SELinux still limits access. Tightening them needs each feature tried on a phone. |
 | Bluetooth call uses the phone's microphone instead of the earbuds' | ukriu | 2026-10-16 | Need info |  |
 | LDAC limited to 16 bits per sample | ukriu | 2026-10-15 | Need info |  |
@@ -56,6 +55,5 @@ Status: Merged (fixed in a release), Fixing, Open (confirmed, not started), Upst
 | Closed hotspot connections stay tracked for up to five days | Betterr | 2026-10-13 | Not planned | A behaviour of AOSP's tethering offload, with no measurable cost. |
 | ADB in recovery is not pre-authorised | Betterr | 2026-10-13 | Not planned |  |
 | Hotspot on another band than Wi-Fi | Betterr | 2026-10-13 | Not possible | There is a single Wi-Fi radio: while on 5 GHz Wi-Fi the hotspot can only use the same channel. |
-| Wi-Fi 6 | Betterr | 2026-10-13 | Not possible | The chip reports no HE capability; the link tops out at 433 Mbps. |
 | Hotspot hardware offload | Betterr | 2026-10-13 | Not possible | The modem's offload driver reports itself disabled. |
 | Key attestation with device IDs | Betterr | 2026-10-13 | Not possible | Fails with `CANNOT_ATTEST_IDS`. Ordinary attestation works. |
