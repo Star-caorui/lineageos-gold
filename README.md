@@ -14,7 +14,7 @@ Unofficial LineageOS for the Redmi Note 13 5G. Test builds: userdebug, signed wi
 
 | | Android | Latest build | |
 | --- | --- | --- | --- |
-| LineageOS 24.0 | 17 | [2026102301](https://github.com/Star-caorui/lineageos-gold/releases/tag/LineageOS-gold-Unofficial-24.0-Vanilla-2026102301) | Current |
+| LineageOS 24.0 | 17 | [2026102501](https://github.com/Star-caorui/lineageos-gold/releases/tag/LineageOS-gold-Unofficial-24.0-Vanilla-2026102501) | Current |
 
 ## Installing
 
