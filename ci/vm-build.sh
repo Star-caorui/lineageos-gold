@@ -5,6 +5,7 @@
 # the VM's maximum run time deletes it if the workflow is gone.
 #
 # Instance metadata it reads: run-id, bucket, device-ref, vendor-ref, gki, sign-script (ci/sign.sh),
+# check-script (ci/check-keys.py, which ci/sign.sh runs),
 # snapshot-url (optional: a manifest snapshot of an earlier build to rebuild it; the kernel
 # sources' snapshot is taken from next to it), sync-only (true: stop after the sync).
 
@@ -262,6 +263,7 @@ say "sign"
 P=$SRC/out/target/product/gold
 SIGNED=$SRC/signed-target_files.zip
 md sign-script > /root/sign.sh || exit 1
+md check-script > /root/check-keys.py || exit 1
 K=/keys
 mkdir -p $K && mount -t tmpfs -o size=64m,mode=0700 tmpfs $K || exit 1
 gcloud secrets versions access latest --secret release-keys-age > $K/identity || exit 1

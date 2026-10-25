@@ -81,7 +81,7 @@ jobs:
           SYNC_ONLY: ${{ inputs.sync_only }}
         run: |
           VM=gold-build-$GITHUB_RUN_ID
-          files=startup-script=ci/vm-build.sh,sign-script=ci/sign.sh
+          files=startup-script=ci/vm-build.sh,sign-script=ci/sign.sh,check-script=ci/check-keys.py
           if [ -n "$SNAPSHOT_URL" ]; then printf '%s' "$SNAPSHOT_URL" > snapshot-url.txt; files=$files,snapshot-url=snapshot-url.txt; fi
           # Two local SSDs (750 GB) and a small boot disk where to be had: the same speed as one big
           # persistent disk for this build at about a third of the disk cost. Otherwise a 450 GB one.
