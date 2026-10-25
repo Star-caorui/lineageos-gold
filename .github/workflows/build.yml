@@ -81,7 +81,7 @@ jobs:
           SYNC_ONLY: ${{ inputs.sync_only }}
         run: |
           VM=gold-build-$GITHUB_RUN_ID
-          files=startup-script=ci/vm-build.sh
+          files=startup-script=ci/vm-build.sh,sign-script=ci/sign.sh
           if [ -n "$SNAPSHOT_URL" ]; then printf '%s' "$SNAPSHOT_URL" > snapshot-url.txt; files=$files,snapshot-url=snapshot-url.txt; fi
           # Two local SSDs (750 GB) and a small boot disk where to be had: the same speed as one big
           # persistent disk for this build at about a third of the disk cost. Otherwise a 450 GB one.
@@ -187,7 +187,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           . <(sed 's/^/export /' out/build-info.txt)
-          for v in incremental lineage android; do
+          for v in incremental lineage android tags; do
             [ -n "${!v}" ] || { echo "build-info.txt has no $v" >&2; exit 1; }
           done
           day=$(TZ=Asia/Shanghai date +%Y%m%d)
@@ -209,7 +209,7 @@ jobs:
             commits="${prev##*-} has no manifest snapshot to compare with."
           fi
           {
-            echo "Unofficial test build: userdebug, test-keys. Not affiliated with Xiaomi, MediaTek or the LineageOS project."
+            echo "Unofficial test build: userdebug, $tags. Not affiliated with Xiaomi, MediaTek or the LineageOS project."
             echo
             echo "| | |"
             echo "| --- | --- |"

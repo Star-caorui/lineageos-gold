@@ -4,7 +4,7 @@
 # runs/<run id>/ and then idles: the workflow deletes the VM as soon as it sees the status, and
 # the VM's maximum run time deletes it if the workflow is gone.
 #
-# Instance metadata it reads: run-id, bucket, device-ref, vendor-ref, gki,
+# Instance metadata it reads: run-id, bucket, device-ref, vendor-ref, gki, sign-script (ci/sign.sh),
 # snapshot-url (optional: a manifest snapshot of an earlier build to rebuild it; the kernel
 # sources' snapshot is taken from next to it), sync-only (true: stop after the sync).
 
@@ -78,7 +78,7 @@ apt-get update -qq
 apt-get install -y -qq bc bison build-essential ccache curl flex g++-multilib gcc-multilib git git-lfs \
   gnupg gperf imagemagick protobuf-compiler python3-protobuf lib32readline-dev lib32z1-dev libdw-dev \
   libelf-dev lz4 libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool \
-  squashfs-tools xsltproc zip zlib1g-dev python-is-python3 zstd > /dev/null || exit 1
+  squashfs-tools xsltproc zip zlib1g-dev python-is-python3 zstd age > /dev/null || exit 1
 curl -sfo /usr/local/bin/repo https://storage.googleapis.com/git-repo-downloads/repo && chmod +x /usr/local/bin/repo || exit 1
 git config --global user.name gold-ci; git config --global user.email gold-ci@localhost
 git config --global color.ui false
@@ -253,14 +253,27 @@ set +u
 export SKIP_KERNEL_SYNC=1
 source build/envsetup.sh
 breakfast gold userdebug || exit 1
-m bacon || exit 1
-set -u
+m target-files-package otatools || exit 1
 ccache -s | grep -E 'Hits|Misses' | head -3
 
-say "collect"
+say "sign"
+# With our release keys (ci/sign.sh). They are in the bucket, encrypted with age to the identity in
+# Secret Manager, and are unpacked on a RAM disk only for the signing.
 P=$SRC/out/target/product/gold
-cp $P/lineage-*-gold.zip $STAGE/package.zip || exit 1
-for i in boot vendor_boot dtbo vbmeta vbmeta_system vbmeta_vendor; do cp $P/$i.img $STAGE/ || exit 1; done
+SIGNED=$SRC/signed-target_files.zip
+md sign-script > /root/sign.sh || exit 1
+K=/keys
+mkdir -p $K && mount -t tmpfs -o size=64m,mode=0700 tmpfs $K || exit 1
+gcloud secrets versions access latest --secret release-keys-age > $K/identity || exit 1
+gcloud storage cat gs://$BUCKET/keys/gold.tar.age | age -d -i $K/identity | tar -xf - -C $K || exit 1
+bash /root/sign.sh $K/gold $P/obj/PACKAGING/target_files_intermediates/*-target_files*.zip $SIGNED $STAGE/package.zip
+rc=$?
+umount $K
+[ $rc = 0 ] || exit 1
+set -u
+
+say "collect"
+unzip -q -o -j $SIGNED IMAGES/{boot,vendor_boot,dtbo,vbmeta,vbmeta_system,vbmeta_vendor}.img -d $STAGE || exit 1
 # ro.lineage.* is in product/etc/build.prop, the rest in system/build.prop.
 prop() { cat $P/system/build.prop $P/product/etc/build.prop | grep -m1 "^$1=" | cut -d= -f2; }
 {
@@ -268,6 +281,7 @@ prop() { cat $P/system/build.prop $P/product/etc/build.prop | grep -m1 "^$1=" | 
   echo "lineage=$(prop ro.lineage.build.version)"
   echo "android=$(prop ro.build.version.release)"
   echo "security_patch=$(prop ro.build.version.security_patch)"
+  echo "tags=$(unzip -p $SIGNED SYSTEM/build.prop | grep -m1 '^ro.build.tags=' | cut -d= -f2)"
   echo "date=$(date -u +%Y-%m-%d)"
   echo "gki=$GKI"
   echo "gki_build=$GKI_BUILD"
