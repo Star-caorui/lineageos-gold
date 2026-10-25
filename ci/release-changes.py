@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """List what changed between two builds, from their manifest snapshots, for the release notes.
 
-Every commit in our own repositories (github.com/Star-caorui) between the two builds, oldest first,
-under the repository's name; for LineageOS and AOSP, only how many repositories changed.
+One line for each of our own repositories (github.com/Star-caorui) that changed between the two builds,
+with GitHub's comparison of the two commits and how many commits it holds; for LineageOS and AOSP,
+only how many repositories changed.
 
     ci/release-changes.py --old manifest-snapshot.xml [kernel-manifest-snapshot.xml] \\
         --new manifest-snapshot.xml [kernel-manifest-snapshot.xml]
 
 The kernel sources' snapshot is optional on either side: builds before LineageOS's build_kernel took
-the kernel prebuilt, from a repository in the main manifest. Commits come from GitHub's compare API
+the kernel prebuilt, from a repository in the main manifest. The counts come from GitHub's compare API
 through the gh CLI, which needs GH_TOKEN.
 """
 
@@ -40,19 +41,15 @@ def projects(paths):
 
 
 def compare(repo, old, new):
-    """The commits from old to new, oldest first, and how many more there are than GitHub listed;
-    None when GitHub cannot compare them."""
+    """How many commits lead from old to new; None when GitHub cannot compare them as a
+    fast-forward."""
     result = subprocess.run(
-        ["gh", "api", f"repos/Star-caorui/{repo}/compare/{old}...{new}"],
+        ["gh", "api", f"repos/Star-caorui/{repo}/compare/{old}...{new}", "--jq", "[.status, .total_commits]"],
         capture_output=True, text=True)
     if result.returncode != 0:
         return None
-    data = json.loads(result.stdout)
-    if data.get("status") not in ("ahead", "identical"):
-        return None
-    commits = [c for c in data["commits"] if len(c["parents"]) < 2]
-    # The API lists at most 250 commits.
-    return commits, data["total_commits"] - len(data["commits"])
+    status, total = json.loads(result.stdout)
+    return total if status in ("ahead", "identical") else None
 
 
 def main():
@@ -68,27 +65,20 @@ def main():
         repo = url[len(OURS):]
         link = f"https://github.com/Star-caorui/{repo}"
         if url not in old:
-            print(f"**{repo}**: new in this build, at [`{new[url][:12]}`]({link}/commit/{new[url]})\n")
+            print(f"- **{repo}**: new in this build, at [`{new[url][:12]}`]({link}/commit/{new[url]})")
             continue
         if url not in new:
-            print(f"**{repo}**: no longer in the build\n")
+            print(f"- **{repo}**: no longer in the build")
             continue
         if old[url] == new[url]:
             continue
-        compared = compare(repo, old[url], new[url])
-        if compared is None:
-            print(f"**{repo}**: [`{old[url][:12]}` to `{new[url][:12]}`]"
-                  f"({link}/compare/{old[url]}...{new[url]}), not a fast-forward\n")
-            continue
-        commits, more = compared
-        print(f"**{repo}**\n")
-        for c in commits:
-            subject = c["commit"]["message"].splitlines()[0]
-            print(f"- {subject} ([`{c['sha'][:12]}`]({link}/commit/{c['sha']}))")
-        if more:
-            print(f"- and [{more} more]({link}/compare/{old[url]}...{new[url]})")
-        print()
-    print(f"LineageOS and AOSP: {upstream} {'repository' if upstream == 1 else 'repositories'} changed.")
+        compare_url = f"{link}/compare/{old[url]}...{new[url]}"
+        total = compare(repo, old[url], new[url])
+        if total is None:
+            print(f"- **{repo}**: [`{old[url][:12]}...{new[url][:12]}`]({compare_url}), not a fast-forward")
+        else:
+            print(f"- **{repo}**: [{total} {'commit' if total == 1 else 'commits'}]({compare_url})")
+    print(f"\nLineageOS and AOSP: {upstream} {'repository' if upstream == 1 else 'repositories'} changed.")
 
 
 if __name__ == "__main__":

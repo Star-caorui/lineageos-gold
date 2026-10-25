@@ -199,7 +199,7 @@ jobs:
           prev=$(gh release list --limit 20 --exclude-drafts --json tagName,isLatest --jq '.[0].tagName')
           prevbody=$(gh release view "$prev" --json body --jq .body)
           section() { printf '%s\n' "$prevbody" | awk -v h="## $1" '$0==h{p=1;next} /^## /{p=0} p'; }
-          # Every commit in our repositories since the previous release, from the two builds' manifest snapshots.
+          # What changed in our repositories since the previous release, from the two builds' manifest snapshots.
           mkdir prev
           gh release download "$prev" -D prev -p manifest-snapshot.xml -p kernel-manifest-snapshot.xml || true
           if [ -f prev/manifest-snapshot.xml ]; then
@@ -222,11 +222,9 @@ jobs:
             echo
             echo "- TODO"
             echo
-            echo "<details><summary>All commits</summary>"
+            echo "Commits:"
             echo
             echo "$commits"
-            echo
-            echo "</details>"
             echo
             echo "## Known issues"
             section "Known issues"
