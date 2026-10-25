@@ -124,10 +124,10 @@ Measured on 23.2:
 | `.github/workflows/publish.yml`, `ci/update-lists.py` | Write the update lists |
 | `ISSUES.md` | Every known issue and request, reported or found, with its status |
 | `ISSUES-pixel.md` | The same, for what only the PixelOS build has |
-| `updates/release-keys/` | The lists the Updater app reads, one per published 24.0 build signed with our release keys |
+| `updates/rk/` | The lists the Updater app reads, one per published 24.0 build signed with our release keys (rk) |
 | `updates/` | The lists of the earlier builds, signed with test keys. They are no longer updated |
 
-A 24.0 build asks for `updates/release-keys/<its ro.build.version.incremental>.json`. When a release is published, `.github/workflows/publish.yml` runs `ci/update-lists.py`, which rewrites the lists of the builds before it so that every one of them is offered the new full package, and commits the lists to `main`.
+A 24.0 build asks for `updates/rk/<its ro.build.version.incremental>.json`. When a release is published, `.github/workflows/publish.yml` runs `ci/update-lists.py`, which rewrites the lists of the builds before it so that every one of them is offered the new full package, and commits the lists to `main`.
 
 Builds signed with test keys ask for `updates/<incremental>.json` instead. A test-keys build cannot install a package signed with our keys, so these lists stay as they are; to move to a release-keys build, install it from recovery and wipe data.
 

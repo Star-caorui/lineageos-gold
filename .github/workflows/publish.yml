@@ -1,7 +1,7 @@
 name: Publish
 
 # When a release is published (a draft turned into a release on the website), offer its full package to
-# every earlier build: update-lists.py rewrites updates/release-keys/*.json, the README's Builds table links the new
+# every earlier build: update-lists.py rewrites updates/rk/*.json, the README's Builds table links the new
 # release, and the change goes to main as a new commit.
 # GitHub has already tagged main at this point, so the tag stays on the commit before the lists change.
 on:
@@ -34,7 +34,7 @@ jobs:
         env:
           TAG: ${{ github.event.release.tag_name }}
         run: |
-          python3 ci/update-lists.py --dir updates/release-keys --version 24.0 \
+          python3 ci/update-lists.py --dir updates/rk --version 24.0 \
             --url "https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG" "pkg/$TAG.zip"
           git status --short
 
