@@ -6,6 +6,7 @@ Status: Merged (fixed in a release), Fixing, Open (confirmed, not started), Upst
 
 | Issue | Reporter | Date | Status | Notes |
 | --- | --- | --- | --- | --- |
+| Check whether the graphics blobs need their graphics.common V5 to V7 fixup | Betterr | 2026-10-25 | Not tested | `extract-files.py` points stock's Mali driver, mapper, allocator, `libgpud` and PQ libraries at the platform's V7 of the common graphics types instead of the V5 they were built against, as LineageOS's lamu tree does. A build without the fixup would show whether it is needed. |
 | Multitasking lags below 30 % battery | yuuki | 2026-10-17 | Open |  |
 | UI lags right after leaving a game | yuuki | 2026-10-17 | Open |  |
 | Stock init scripts make some device nodes and camera files world-writable | Betterr | 2026-10-16 | Open | 0666 and 0777 copied from stock; SELinux still limits access. Tightening them needs each feature tried on a phone. |
