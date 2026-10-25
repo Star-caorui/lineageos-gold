@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Write the lists the Updater app reads, one per published build.
 
-The app asks for updates/<its own ro.build.version.incremental>.json. After this runs, the list
+The app asks for updates/release-keys/<its own ro.build.version.incremental>.json. After this runs, the list
 of every build published before the new one offers the new one: as an incremental package where
 one was made from that build, as the full package otherwise. The list of the new build is empty.
 
@@ -58,7 +58,8 @@ def main():
     parser.add_argument("--url", required=True, help="URL the packages are downloaded from, without the file name")
     parser.add_argument("--version", required=True, help="ro.lineage.build.version of the new build")
     parser.add_argument("--type", default="unofficial", help="ro.lineage.releasetype of the new build")
-    parser.add_argument("--dir", default=pathlib.Path(__file__).resolve().parent.parent / "updates", type=pathlib.Path)
+    parser.add_argument("--dir", default=pathlib.Path(__file__).resolve().parent.parent / "updates" / "release-keys",
+                        type=pathlib.Path)
     parser.add_argument("full", type=pathlib.Path)
     parser.add_argument("incremental", type=pathlib.Path, nargs="*")
     args = parser.parse_args()
