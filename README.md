@@ -123,6 +123,7 @@ Measured on 23.2:
 | `.github/workflows/build.yml`, `ci/` | Build a package from source on a Google Cloud spot VM and make a draft release of it. Started by hand from the Actions tab. Each run keeps the whole log and the build tools' timing data, and its summary shows where the build time went and what it cost |
 | `.github/workflows/publish.yml`, `ci/update-lists.py` | Write the update lists |
 | `ISSUES.md` | Every known issue and request, reported or found, with its status |
+| `ISSUES-pixel.md` | The same, for what only the PixelOS build has |
 | `updates/` | The lists the Updater app reads, one per published 24.0 build |
 
 A 24.0 build asks for `updates/<its ro.build.version.incremental>.json`. When a release is published, `.github/workflows/publish.yml` runs `ci/update-lists.py`, which rewrites the lists of the builds before it so that every one of them is offered the new full package, and commits the lists to `main`.
