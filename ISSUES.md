@@ -6,7 +6,7 @@ Status: Merged (fixed in a release), Fixing, Open (confirmed, not started), Upst
 
 | Issue | Reporter | Date | Status | Notes |
 | --- | --- | --- | --- | --- |
-| The stock battery driver reports a cycle count in the thousands | Betterr | 2026-10-17 | Open | 1668 on the test unit and 4519 on ukriu's. The driver is now built from source the way stock builds it, and reports the same. Shown as is in the device diagnostics. |
+| The stock battery driver reports a cycle count in the thousands | Betterr | 2026-10-17 | Not a bug | 1668 on the test unit and 4519 on ukriu's. The driver is now built from source the way stock builds it, and reports the same. Shown as is in the device diagnostics. |
 | Multitasking lags below 30 % battery | yuuki | 2026-10-17 | Open |  |
 | UI lags right after leaving a game | yuuki | 2026-10-17 | Open |  |
 | Stock init scripts make some device nodes and camera files world-writable | Betterr | 2026-10-16 | Open | 0666 and 0777 copied from stock; SELinux still limits access. Tightening them needs each feature tried on a phone. |
