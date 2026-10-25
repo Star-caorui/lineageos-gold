@@ -233,12 +233,6 @@ jobs:
             echo "## Installing"
             echo
             echo "See [Installing](https://github.com/$GITHUB_REPOSITORY#installing) in the README."
-            echo
-            echo "## Files"
-            echo
-            echo "| File | SHA-256 |"
-            echo "| --- | --- |"
-            while read sum file; do echo "| \`$file\` | \`$sum\` |"; done < out/SHA256SUMS
           } > notes.md
           gh release create "$name" --draft --prerelease --target main \
             --title "LineageOS $lineage | Unofficial | Android $android | $stamp" --notes-file notes.md \
