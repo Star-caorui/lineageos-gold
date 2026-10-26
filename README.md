@@ -129,7 +129,7 @@ Measured on 23.2:
 
 A 24.0 build asks for `updates/rk/<its ro.build.version.incremental>.json`. When a release is published, `.github/workflows/publish.yml` runs `ci/update-lists.py`, which rewrites the lists of the builds before it so that every one of them is offered the new full package, and commits the lists to `main`.
 
-Builds signed with test keys ask for `updates/<incremental>.json` instead. A test-keys build cannot install a package signed with our keys, so these lists stay as they are; to move to a release-keys build, install it from recovery and wipe data.
+Builds signed with test keys ask for `updates/<incremental>.json` instead. A test-keys build cannot install a package signed with our keys, so these lists stay as they are; to move to a release-keys build, wipe data in recovery first (Factory reset, then Format data), then install it from recovery. Wiping after installing undoes the install: the phone has virtual A/B, and recovery leaves most of an update to be merged on the first boot.
 
 Each release built by the workflow carries `manifest-snapshot.xml`, the exact commit of every repository it was built from. Giving its URL to the workflow rebuilds that release.
 
