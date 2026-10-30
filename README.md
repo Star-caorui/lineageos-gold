@@ -58,7 +58,7 @@ The rows are the items of LineageOS's [device support requirements](https://gith
   <tr><td></td><td>Speaker audio</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>Additional audio configuration (echo cancellation, extra mics)</td><td align="center">Not tested</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>Other audio outputs of the stock OS: headphone jack, Bluetooth</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
-  <tr><td></td><td>Other audio outputs of the stock OS: USB-C</td><td align="center">Not tested</td><td align="center">Not tested</td></tr>
+  <tr><td></td><td>Other audio outputs of the stock OS: USB-C</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>FM radio</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>RIL</td><td>Phone calls and data</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>Emergency calling with a SIM inserted</td><td align="center">Not tested</td><td align="center">Not tested</td></tr>
@@ -140,4 +140,4 @@ Its files also carry a signed build provenance attestation: `gh attestation veri
 - bengris32, whose patch for Motorola's ImsService ours repeats on this device's build of the app.
 - Mashopy, whose fenrir LK patches for fastbootd and libfs_avb, from [Nothing-2A](https://github.com/Nothing-2A/android_system_core), the build applies.
 - [techyminati](https://github.com/techyminati/android_vendor_mediatek_ims) for the MediaTek IMS package our earlier builds used.
-- The testers in the Telegram community, who ran test builds and sent logs: ukriu (call volume, charging, Bluetooth audio, USB OTG), yuuki (call volume, app drawer stutter), affan (5G on an Indonesian carrier), and everyone else who reported a bug.
+- The testers in the Telegram community, who ran test builds and sent logs: ukriu (call volume, charging, Bluetooth audio, USB audio, USB OTG), yuuki (call volume, app drawer stutter), affan (5G on an Indonesian carrier), and everyone else who reported a bug.
