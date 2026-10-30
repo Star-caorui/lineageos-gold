@@ -1,0 +1,18 @@
+[
+  {
+    "datetime": 1793526828,
+    "files": [
+      {
+        "filename": "LineageOS-gold-Unofficial-24.0-Vanilla-2026110101.zip",
+        "os_patch_level": "2026-10-01",
+        "os_sdk_level": 37,
+        "ota_property_files": "payload_metadata.bin:4981:119206,payload.bin:4981:1311780265,payload_properties.txt:1311785304:156,apex_info.pb:2175:1519,care_map.pb:3741:1193,metadata:69:677,metadata.pb:814:1313",
+        "sha256": "1ddcb911e94aa3ba5c78b109b08448ae1e89b763595cedb89649dc9a133c99b3",
+        "size": 1311788233,
+        "url": "https://github.com/Star-caorui/lineageos-gold/releases/download/LineageOS-gold-Unofficial-24.0-Vanilla-2026110101/LineageOS-gold-Unofficial-24.0-Vanilla-2026110101.zip"
+      }
+    ],
+    "type": "unofficial",
+    "version": "24.0"
+  }
+]
