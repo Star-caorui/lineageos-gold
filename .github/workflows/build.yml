@@ -228,8 +228,8 @@ jobs:
             echo
             echo "## Known issues"
             section "Known issues"
-            echo "## Notes"
-            section "Notes"
+            notes=$(section "Notes")
+            if [ -n "${notes//[[:space:]]/}" ]; then echo "## Notes"; printf '%s\n\n' "$notes"; fi
             echo "## Installing"
             echo
             echo "See [Installing](https://github.com/$GITHUB_REPOSITORY#installing) in the README."
