@@ -61,7 +61,7 @@ The rows are the items of LineageOS's [device support requirements](https://gith
   <tr><td></td><td>Other audio outputs of the stock OS: USB-C</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>FM radio</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>RIL</td><td>Phone calls and data</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
-  <tr><td></td><td>Emergency calling with a SIM inserted</td><td align="center">Not tested</td><td align="center">Not tested</td></tr>
+  <tr><td></td><td>Emergency calling with a SIM inserted</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>Emergency calling without a SIM inserted</td><td align="center">Not tested</td><td align="center">Not tested</td></tr>
   <tr><td>Encryption</td><td>Hardware-backed encryption</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>Encryption enabled by default</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
@@ -74,13 +74,13 @@ The rows are the items of LineageOS's [device support requirements](https://gith
   <tr><td>GPS</td><td>GPS</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>Bluetooth</td><td>Bluetooth</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>Same MAC address as on the stock OS</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
-  <tr><td></td><td>Bluetooth tethering</td><td align="center">Not tested</td><td align="center">Not tested</td></tr>
+  <tr><td></td><td>Bluetooth tethering</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>aptX</td><td align="center">Not supported</td><td align="center">Not supported</td></tr>
   <tr><td>Camera</td><td>Front facing and rear camera</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
-  <tr><td></td><td>All rear cameras (two or more)</td><td align="center">Not tested</td><td align="center">Not tested</td></tr>
+  <tr><td></td><td>All rear cameras (two or more)</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>All front cameras (two or more)</td><td align="center">No hardware</td><td align="center">No hardware</td></tr>
   <tr><td>Video Recording</td><td>Video recording, rear camera</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
-  <tr><td></td><td>Video recording, front camera</td><td align="center">Not tested</td><td align="center">Not tested</td></tr>
+  <tr><td></td><td>Video recording, front camera</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>Codecs</td><td>Hardware encoding and decoding of the codecs the stock OS supports</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>Display</td><td>Same resolution as the stock OS</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>Same density as the stock OS</td><td align="center">Not supported</td><td align="center">Not supported</td></tr>
@@ -91,7 +91,7 @@ The rows are the items of LineageOS's [device support requirements](https://gith
   <tr><td>Fingerprint Sensor</td><td>Fingerprint sensor</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>IR</td><td>IR blaster</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>SD card</td><td>SD cards</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
-  <tr><td></td><td>Adoptable storage</td><td align="center">Not tested</td><td align="center">Not tested</td></tr>
+  <tr><td></td><td>Adoptable storage</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>Accelerometer</td><td>Accelerometer</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>Gyroscope</td><td>Gyroscope</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>Proximity</td><td>Proximity sensor</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
@@ -102,7 +102,7 @@ The rows are the items of LineageOS's [device support requirements](https://gith
   <tr><td>Verity</td><td>Verity disabled on the system image for userdebug builds</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>Verity on the vendor image</td><td align="center">Not supported</td><td align="center">Not supported</td></tr>
   <tr><td>Updater</td><td>Upgrades via the Updater app and the recovery</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
-  <tr><td>FRP</td><td>Factory Reset Protection when Google apps are installed</td><td align="center">Not tested</td><td align="center">Not tested</td></tr>
+  <tr><td>FRP</td><td>Factory Reset Protection when Google apps are installed</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>LineageOS Recovery</td><td>Lineage Recovery works for installation</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>Addon packages</td><td>Addon packages can be installed through Lineage Recovery</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
 </table>
