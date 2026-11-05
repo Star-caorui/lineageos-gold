@@ -1,6 +1,6 @@
 # LineageOS for the Redmi Note 13 5G (`gold`)
 
-Unofficial LineageOS for the Redmi Note 13 5G. Test builds: userdebug, signed with our own release keys. Not affiliated with Xiaomi, MediaTek or the LineageOS project.
+Unofficial LineageOS for the Redmi Note 13 5G. Builds: user, signed with our own release keys. Not affiliated with Xiaomi, MediaTek or the LineageOS project.
 
 | | |
 | --- | --- |
@@ -99,7 +99,7 @@ The rows are the items of LineageOS's [device support requirements](https://gith
   <tr><td>Other Sensors</td><td>All other sensors of the stock OS</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>Accessories</td><td>Proprietary accessories</td><td align="center">No hardware</td><td align="center">No hardware</td></tr>
   <tr><td>SELinux status</td><td>SELinux Enforcing</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
-  <tr><td>Verity</td><td>Verity disabled on the system image for userdebug builds</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
+  <tr><td>Verity</td><td>Verity disabled on the system image</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td></td><td>Verity on the vendor image</td><td align="center">Not supported</td><td align="center">Not supported</td></tr>
   <tr><td>Updater</td><td>Upgrades via the Updater app and the recovery</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
   <tr><td>FRP</td><td>Factory Reset Protection when Google apps are installed</td><td align="center">PASS</td><td align="center">Not tested</td></tr>
@@ -109,7 +109,7 @@ The rows are the items of LineageOS's [device support requirements](https://gith
 
 - aptX and HDR10 playback: the stock OS does not have them either.
 - Density: 440 dpi; the stock OS uses 480.
-- Verity on the vendor image: off, as LineageOS turns it off on userdebug builds. With it on, every update would also have to compute the hash trees of the partitions it writes on the phone, which makes incremental updates much slower.
+- Verity on the vendor image: off, as on the system image (the vbmeta image sets the hashtree disabled flag). With it on, every update would also have to compute the hash trees of the partitions it writes on the phone, which makes incremental updates much slower.
 
 ## This repository
 
