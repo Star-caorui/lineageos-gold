@@ -241,7 +241,9 @@ jobs:
             echo
             echo "See [Installing](https://github.com/$GITHUB_REPOSITORY#installing) in the README."
           } > notes.md
-          gh release create "$name" --draft --prerelease --target main \
+          # userdebug builds are for testing, so they are pre-releases
+          pre=; [ "$variant" = user ] || pre=--prerelease
+          gh release create "$name" --draft $pre --target main \
             --title "LineageOS $lineage | Unofficial | Android $android | $stamp" --notes-file notes.md \
             out/$name.zip out/boot.img out/vendor_boot.img out/dtbo.img out/vbmeta.img out/vbmeta_system.img \
             out/vbmeta_vendor.img out/SHA256SUMS out/manifest-snapshot.xml out/kernel-manifest-snapshot.xml
