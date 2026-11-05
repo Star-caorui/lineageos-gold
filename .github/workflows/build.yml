@@ -11,6 +11,11 @@ on:
       vendor_ref:
         description: Proprietary files branch, tag or commit
         default: lineage-24.0
+      variant:
+        description: Build variant
+        type: choice
+        options: [user, userdebug]
+        default: user
       gki:
         description: "GKI build: latest (the newest the kernel manifest's gki.sha256 lists) or stock (15511674, as stock ships)"
         type: choice
@@ -77,6 +82,7 @@ jobs:
           DEVICE_REF: ${{ inputs.device_ref }}
           VENDOR_REF: ${{ inputs.vendor_ref }}
           GKI: ${{ inputs.gki }}
+          VARIANT: ${{ inputs.variant }}
           SNAPSHOT_URL: ${{ inputs.snapshot_url }}
           SYNC_ONLY: ${{ inputs.sync_only }}
         run: |
@@ -96,7 +102,7 @@ jobs:
                   --service-account gold-builder@$PROJECT.iam.gserviceaccount.com --scopes cloud-platform \
                   --labels purpose=gold-build,run=$GITHUB_RUN_ID \
                   --metadata-from-file $files \
-                  --metadata "run-id=$GITHUB_RUN_ID,bucket=$BUCKET,device-ref=$DEVICE_REF,vendor-ref=$VENDOR_REF,gki=$GKI,sync-only=$SYNC_ONLY"; then
+                  --metadata "run-id=$GITHUB_RUN_ID,bucket=$BUCKET,device-ref=$DEVICE_REF,vendor-ref=$VENDOR_REF,gki=$GKI,variant=$VARIANT,sync-only=$SYNC_ONLY"; then
                 echo "started=$(date +%s)" >> $GITHUB_OUTPUT
                 echo "disks=$disks" >> $GITHUB_OUTPUT
                 exit 0
@@ -116,6 +122,7 @@ jobs:
           DEVICE_REF: ${{ inputs.device_ref }}
           VENDOR_REF: ${{ inputs.vendor_ref }}
           GKI: ${{ inputs.gki }}
+          VARIANT: ${{ inputs.variant }}
           SNAPSHOT_URL: ${{ inputs.snapshot_url }}
         run: |
           for f in commits.txt sync-times.md; do gcloud storage cp gs://$BUCKET/runs/$GITHUB_RUN_ID/out/$f . 2>/dev/null || true; done
@@ -128,7 +135,7 @@ jobs:
             esac
           }
           {
-            echo "GKI \`$GKI\`${SNAPSHOT_URL:+, rebuilt from [a manifest snapshot]($SNAPSHOT_URL)}"
+            echo "\`$VARIANT\`, GKI \`$GKI\`${SNAPSHOT_URL:+, rebuilt from [a manifest snapshot]($SNAPSHOT_URL)}"
             echo
             echo "| Repository | Requested | Built from |"
             echo "| --- | --- | --- |"
@@ -187,7 +194,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           . <(sed 's/^/export /' out/build-info.txt)
-          for v in incremental lineage android tags; do
+          for v in incremental lineage android variant tags; do
             [ -n "${!v}" ] || { echo "build-info.txt has no $v" >&2; exit 1; }
           done
           day=$(TZ=Asia/Shanghai date +%Y%m%d)
@@ -209,7 +216,7 @@ jobs:
             commits="${prev##*-} has no manifest snapshot to compare with."
           fi
           {
-            echo "Unofficial test build: userdebug, $tags. Not affiliated with Xiaomi, MediaTek or the LineageOS project."
+            echo "Unofficial build: $variant, $tags. Not affiliated with Xiaomi, MediaTek or the LineageOS project."
             echo
             echo "| | |"
             echo "| --- | --- |"

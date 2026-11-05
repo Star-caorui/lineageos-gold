@@ -4,7 +4,8 @@
 # runs/<run id>/ and then idles: the workflow deletes the VM as soon as it sees the status, and
 # the VM's maximum run time deletes it if the workflow is gone.
 #
-# Instance metadata it reads: run-id, bucket, device-ref, vendor-ref, gki, sign-script (ci/sign.sh),
+# Instance metadata it reads: run-id, bucket, device-ref, vendor-ref, gki, variant (user or
+# userdebug; userdebug when missing), sign-script (ci/sign.sh),
 # check-script (ci/check-keys.py, which ci/sign.sh runs),
 # snapshot-url (optional: a manifest snapshot of an earlier build to rebuild it; the kernel
 # sources' snapshot is taken from next to it), sync-only (true: stop after the sync).
@@ -14,7 +15,7 @@ export HOME=/root  # startup scripts run without it; git and Soong need it
 md() { curl -sf -H 'Metadata-Flavor: Google' "http://metadata.google.internal/computeMetadata/v1/instance/attributes/$1"; }
 RUN=$(md run-id); BUCKET=$(md bucket)
 DEVICE_REF=$(md device-ref); VENDOR_REF=$(md vendor-ref)
-GKI=$(md gki); SNAPSHOT_URL=$(md snapshot-url || true)
+GKI=$(md gki); VARIANT=$(md variant || echo userdebug); SNAPSHOT_URL=$(md snapshot-url || true)
 SYNC_ONLY=$(md sync-only || true)
 R=gs://$BUCKET/runs/$RUN
 LOG=/var/log/gold-build.log; STAGE=/out; SRC=/src  # not OUT: envsetup.sh sets that
@@ -42,7 +43,7 @@ trap finish EXIT
 ( while sleep 20; do gcloud storage cp $LOG $R/build.log --quiet 2>/dev/null; done ) &
 
 status running
-say "run $RUN: device $DEVICE_REF, vendor $VENDOR_REF, GKI $GKI"
+say "run $RUN: device $DEVICE_REF, vendor $VENDOR_REF, $VARIANT, GKI $GKI"
 nproc; free -g | sed -n 2p; df -h / | tail -1
 
 # The VM comes with local SSDs when they were to be had (cheaper than a big persistent disk, and the
@@ -261,7 +262,7 @@ set +u
 # breakfast runs build_kernel itself; the kernel sources are synced above
 export SKIP_KERNEL_SYNC=1
 source build/envsetup.sh
-breakfast gold userdebug || exit 1
+breakfast gold $VARIANT || exit 1
 m target-files-package otatools || exit 1
 ccache -s | grep -E 'Hits|Misses' | head -3
 
@@ -293,6 +294,7 @@ prop() { cat $P/system/build.prop $P/product/etc/build.prop | grep -m1 "^$1=" | 
   echo "security_patch=$(prop ro.build.version.security_patch)"
   echo "tags=$(unzip -p $SIGNED SYSTEM/build.prop | grep -m1 '^ro.build.tags=' | cut -d= -f2)"
   echo "date=$(date -u +%Y-%m-%d)"
+  echo "variant=$VARIANT"
   echo "gki=$GKI"
   echo "gki_build=$GKI_BUILD"
 } > $STAGE/build-info.txt
