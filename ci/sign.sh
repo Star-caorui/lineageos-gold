@@ -39,7 +39,10 @@ mkdir "$work/BOOTABLE_IMAGES" && cp "$work/IMAGES/boot.img" "$work/BOOTABLE_IMAG
 rm -rf "$work"
 
 # And after it, that every signed AVB image carries our key.
-want=$(avbtool extract_public_key --key "$K/avb.pem" --output /dev/stdout | sha1sum | cut -d' ' -f1)
+pub=$(mktemp)
+avbtool extract_public_key --key "$K/avb.pem" --output "$pub"
+want=$(sha1sum < "$pub" | cut -d' ' -f1)
+rm -f "$pub"
 for p in vbmeta boot vbmeta_system vbmeta_vendor; do
   img=$(mktemp)
   unzip -p "$SIGNED" "IMAGES/$p.img" > "$img"
