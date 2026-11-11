@@ -284,7 +284,7 @@ umount $K
 set -u
 
 say "collect"
-unzip -q -o -j $SIGNED IMAGES/{boot,vendor_boot,dtbo,vbmeta,vbmeta_system,vbmeta_vendor}.img -d $STAGE || exit 1
+unzip -q -o -j $SIGNED IMAGES/{boot,vendor_boot}.img -d $STAGE || exit 1
 # ro.lineage.* is in product/etc/build.prop, the rest in system/build.prop.
 prop() { cat $P/system/build.prop $P/product/etc/build.prop | grep -m1 "^$1=" | cut -d= -f2; }
 {

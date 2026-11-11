@@ -202,7 +202,6 @@ jobs:
           stamp=$day$(printf %02d $((n + 1)))
           name=LineageOS-gold-Unofficial-$lineage-Vanilla-$stamp
           mv out/package.zip out/$name.zip
-          (cd out && sha256sum $name.zip boot.img vendor_boot.img dtbo.img vbmeta.img vbmeta_system.img vbmeta_vendor.img > SHA256SUMS)
           prev=$(gh release list --limit 20 --exclude-drafts --json tagName,isLatest --jq '.[0].tagName')
           prevbody=$(gh release view "$prev" --json body --jq .body)
           section() { printf '%s\n' "$prevbody" | awk -v h="## $1" '$0==h{p=1;next} /^## /{p=0} p'; }
@@ -245,8 +244,8 @@ jobs:
           pre=; [ "$variant" = user ] || pre=--prerelease
           gh release create "$name" --draft $pre --target main \
             --title "LineageOS $lineage | Unofficial | Android $android | $stamp" --notes-file notes.md \
-            out/$name.zip out/boot.img out/vendor_boot.img out/dtbo.img out/vbmeta.img out/vbmeta_system.img \
-            out/vbmeta_vendor.img out/SHA256SUMS out/manifest-snapshot.xml out/kernel-manifest-snapshot.xml
+            out/$name.zip out/boot.img out/vendor_boot.img \
+            out/manifest-snapshot.xml out/kernel-manifest-snapshot.xml
           echo "Draft release [\`$name\`](https://github.com/$GITHUB_REPOSITORY/releases), incremental \`$incremental\`." >> $GITHUB_STEP_SUMMARY
 
       - name: Write where the build time went
@@ -263,7 +262,6 @@ jobs:
           subject-path: |
             out/*.zip
             out/*.img
-            out/SHA256SUMS
             out/manifest-snapshot.xml
             out/kernel-manifest-snapshot.xml
 
