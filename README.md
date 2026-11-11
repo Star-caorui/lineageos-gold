@@ -125,7 +125,7 @@ A 24.0 build asks for `updates/rk/<its ro.build.version.incremental>.json`. When
 
 Builds signed with test keys ask for `updates/<incremental>.json` instead. A test-keys build cannot install a package signed with our keys, so these lists stay as they are; to move to a release-keys build, wipe data in recovery first (Factory reset, then Format data), then install it from recovery. Wiping after installing undoes the install: the phone has virtual A/B, and recovery leaves most of an update to be merged on the first boot.
 
-Each release built by the workflow carries `manifest-snapshot.xml`, the exact commit of every repository it was built from. Giving its URL to the workflow rebuilds that release. Releases up to 2026102601 name our former forks of six LineageOS projects, which no longer exist, so they cannot be rebuilt this way.
+Each release built by the workflow carries `manifest-snapshot.xml`, the exact commit of every repository it was built from. Giving its URL to the workflow rebuilds that release. Releases up to 2026110501 cannot be rebuilt this way: their kernel snapshots name the four kernel module repositories that became [android_kernel_xiaomi_gold](https://github.com/Star-caorui/android_kernel_xiaomi_gold) on 2026-11-11, which no longer exist, and those up to 2026102601 also name our former forks of six LineageOS projects.
 
 Its files also carry a signed build provenance attestation: `gh attestation verify <file> -R Star-caorui/lineageos-gold` checks that a file is the one this repository's workflow produced.
 
