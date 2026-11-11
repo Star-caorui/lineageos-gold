@@ -4,7 +4,7 @@
 # runs/<run id>/ and then idles: the workflow deletes the VM as soon as it sees the status, and
 # the VM's maximum run time deletes it if the workflow is gone.
 #
-# Instance metadata it reads: run-id, bucket, device-ref, vendor-ref, gki, variant (user or
+# Instance metadata it reads: run-id, bucket, device-ref, vendor-ref, variant (user or
 # userdebug; userdebug when missing), sign-script (ci/sign.sh),
 # check-script (ci/check-keys.py, which ci/sign.sh runs),
 # snapshot-url (optional: a manifest snapshot of an earlier build to rebuild it; the kernel
@@ -15,7 +15,7 @@ export HOME=/root  # startup scripts run without it; git and Soong need it
 md() { curl -sf -H 'Metadata-Flavor: Google' "http://metadata.google.internal/computeMetadata/v1/instance/attributes/$1"; }
 RUN=$(md run-id); BUCKET=$(md bucket)
 DEVICE_REF=$(md device-ref); VENDOR_REF=$(md vendor-ref)
-GKI=$(md gki); VARIANT=$(md variant || echo userdebug); SNAPSHOT_URL=$(md snapshot-url || true)
+VARIANT=$(md variant || echo userdebug); SNAPSHOT_URL=$(md snapshot-url || true)
 SYNC_ONLY=$(md sync-only || true)
 R=gs://$BUCKET/runs/$RUN
 LOG=/var/log/gold-build.log; STAGE=/out; SRC=/src  # not OUT: envsetup.sh sets that
@@ -43,7 +43,7 @@ trap finish EXIT
 ( while sleep 20; do gcloud storage cp $LOG $R/build.log --quiet 2>/dev/null; done ) &
 
 status running
-say "run $RUN: device $DEVICE_REF, vendor $VENDOR_REF, $VARIANT, GKI $GKI"
+say "run $RUN: device $DEVICE_REF, vendor $VENDOR_REF, $VARIANT"
 nproc; free -g | sed -n 2p; df -h / | tail -1
 
 # The VM comes with local SSDs when they were to be had (cheaper than a big persistent disk, and the
@@ -248,13 +248,13 @@ if [ -n "$SNAPSHOT_URL" ]; then
 fi
 (cd $KT && repo sync -q -c --no-tags --force-sync) || exit 1
 (cd $KT && repo manifest -r -o $STAGE/kernel-manifest-snapshot.xml) || exit 1
-# the GKI build: stock's, or the newest the manifest's gki.sha256 lists
-case $GKI in
-  stock) GKI_BUILD=15511674 ;;
-  latest) GKI_BUILD=$(awk '/^[0-9]/ { print $1 }' $KT/manifest/gki.sha256 | sort -n | tail -1) ;;
-  *) GKI_BUILD=$GKI ;;
-esac
-export GKI_BUILD
+# the GKI build is the one the kernel manifest's build script names (GKI_BUILD, with kernel-6.6 at its source);
+# a snapshot from before it did rebuilds with the newest its gki.sha256 lists, as those builds took
+GKI_BUILD=$(sed -n 's/^GKI_BUILD=\([0-9]*\)$/\1/p' $KT/manifest/build_mgk_64_k66.sh)
+if [ -z "$GKI_BUILD" ]; then
+  GKI_BUILD=$(awk '/^[0-9]/ { print $1 }' $KT/manifest/gki.sha256 | sort -n | tail -1)
+  export GKI_BUILD
+fi
 say "GKI build $GKI_BUILD"
 
 say "build"
@@ -295,7 +295,6 @@ prop() { cat $P/system/build.prop $P/product/etc/build.prop | grep -m1 "^$1=" | 
   echo "tags=$(unzip -p $SIGNED SYSTEM/build.prop | grep -m1 '^ro.build.tags=' | cut -d= -f2)"
   echo "date=$(date -u +%Y-%m-%d)"
   echo "variant=$VARIANT"
-  echo "gki=$GKI"
   echo "gki_build=$GKI_BUILD"
 } > $STAGE/build-info.txt
 cat $STAGE/build-info.txt

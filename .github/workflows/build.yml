@@ -16,11 +16,6 @@ on:
         type: choice
         options: [user, userdebug]
         default: user
-      gki:
-        description: "GKI build: latest (the newest the kernel manifest's gki.sha256 lists) or stock (15511674, as stock ships)"
-        type: choice
-        options: [latest, stock]
-        default: latest
       snapshot_url:
         description: Manifest snapshot of an earlier build to rebuild it exactly (overrides the refs above)
         default: ''
@@ -81,7 +76,6 @@ jobs:
         env:
           DEVICE_REF: ${{ inputs.device_ref }}
           VENDOR_REF: ${{ inputs.vendor_ref }}
-          GKI: ${{ inputs.gki }}
           VARIANT: ${{ inputs.variant }}
           SNAPSHOT_URL: ${{ inputs.snapshot_url }}
           SYNC_ONLY: ${{ inputs.sync_only }}
@@ -102,7 +96,7 @@ jobs:
                   --service-account gold-builder@$PROJECT.iam.gserviceaccount.com --scopes cloud-platform \
                   --labels purpose=gold-build,run=$GITHUB_RUN_ID \
                   --metadata-from-file $files \
-                  --metadata "run-id=$GITHUB_RUN_ID,bucket=$BUCKET,device-ref=$DEVICE_REF,vendor-ref=$VENDOR_REF,gki=$GKI,variant=$VARIANT,sync-only=$SYNC_ONLY"; then
+                  --metadata "run-id=$GITHUB_RUN_ID,bucket=$BUCKET,device-ref=$DEVICE_REF,vendor-ref=$VENDOR_REF,variant=$VARIANT,sync-only=$SYNC_ONLY"; then
                 echo "started=$(date +%s)" >> $GITHUB_OUTPUT
                 echo "disks=$disks" >> $GITHUB_OUTPUT
                 exit 0
@@ -121,11 +115,10 @@ jobs:
         env:
           DEVICE_REF: ${{ inputs.device_ref }}
           VENDOR_REF: ${{ inputs.vendor_ref }}
-          GKI: ${{ inputs.gki }}
           VARIANT: ${{ inputs.variant }}
           SNAPSHOT_URL: ${{ inputs.snapshot_url }}
         run: |
-          for f in commits.txt sync-times.md; do gcloud storage cp gs://$BUCKET/runs/$GITHUB_RUN_ID/out/$f . 2>/dev/null || true; done
+          for f in commits.txt sync-times.md build-info.txt; do gcloud storage cp gs://$BUCKET/runs/$GITHUB_RUN_ID/out/$f . 2>/dev/null || true; done
           asked() {
             [ -n "$SNAPSHOT_URL" ] && { echo "snapshot"; return; }
             case $1 in
@@ -135,7 +128,7 @@ jobs:
             esac
           }
           {
-            echo "\`$VARIANT\`, GKI \`$GKI\`${SNAPSHOT_URL:+, rebuilt from [a manifest snapshot]($SNAPSHOT_URL)}"
+            echo "\`$VARIANT\`, GKI build \`$(sed -n 's/^gki_build=//p' build-info.txt 2>/dev/null)\`${SNAPSHOT_URL:+, rebuilt from [a manifest snapshot]($SNAPSHOT_URL)}"
             echo
             echo "| Repository | Requested | Built from |"
             echo "| --- | --- | --- |"
