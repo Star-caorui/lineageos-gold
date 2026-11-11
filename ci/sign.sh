@@ -24,21 +24,10 @@ done
 python3 "$(dirname "$0")/check-keys.py" "$K" "$IN" "$ANDROID_HOST_OUT/bin"
 sign_target_files_apks -p "$ANDROID_HOST_OUT" "${args[@]}" "$IN" "$SIGNED"
 
-# boot.img comes from the device's own boot image makefile, so the target files keep it in
-# BOOTABLE_IMAGES and the tools reuse it as built, with the test key and test-keys fingerprint. Sign
-# its footer again with what the signed misc_info gives boot.
-misc() { unzip -p "$SIGNED" META/misc_info.txt | sed -n "s/^$1=//p"; }
-read -ra footer <<< "$(misc avb_boot_add_hash_footer_args)"
-work=$(mktemp -d)
-unzip -q "$SIGNED" IMAGES/boot.img -d "$work"
-avbtool erase_footer --image "$work/IMAGES/boot.img"
-avbtool add_hash_footer --image "$work/IMAGES/boot.img" --partition_name boot \
-  --partition_size "$(misc boot_size)" --algorithm "$(misc avb_boot_algorithm)" --key "$K/avb.pem" "${footer[@]}"
-mkdir "$work/BOOTABLE_IMAGES" && cp "$work/IMAGES/boot.img" "$work/BOOTABLE_IMAGES/"
-(cd "$work" && zip -q "$SIGNED" IMAGES/boot.img BOOTABLE_IMAGES/boot.img)
-rm -rf "$work"
-
-# And after it, that every signed AVB image carries our key.
+# And after it, that every signed AVB image carries our key. boot.img is Google's certified GKI boot
+# image with our footer on top (the device tree's BOARD_PREBUILT_BOOTIMAGE): the target files keep it
+# in PREBUILT_IMAGES, and sign_target_files_apks puts the footer on it again, the certificate inside
+# left as it is.
 pub=$(mktemp)
 avbtool extract_public_key --key "$K/avb.pem" --output "$pub"
 want=$(sha1sum < "$pub" | cut -d' ' -f1)
