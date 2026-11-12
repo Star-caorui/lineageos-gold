@@ -1,13 +1,12 @@
 #!/bin/bash
-# dev-vm.sh <data disk>: set up a long-lived build VM for trying changes without a CI run. Run as root
-# on the VM, again after every boot (it skips what is done): it mounts the data disk at /work, installs
-# the build dependencies, turns on swap, and on the first run syncs the source tree to /work/src and the
-# kernel sources to its out-kernel/xiaomi_gold. On Google Cloud, with gcloud and the CI's service
-# account, it starts from the bucket's source cache and ccache; elsewhere it syncs everything. It
-# builds nothing.
+# dev-vm.sh <data disk>: set up a long-lived build VM for trying changes without a CI run. Run as root on
+# the VM, again after every boot (it skips what is done): it mounts the data disk at /work, installs the
+# build dependencies, turns on swap, and on the first run syncs the source tree to /work/src, the prebuilt
+# kernel with it. On Google Cloud, with gcloud and the CI's service account, it starts from the bucket's
+# source cache and ccache; elsewhere it syncs everything. It builds nothing.
 #
 # The data disk outlives the VM, so builds after the first are incremental. Build by hand afterwards:
-#   cd /work/src && export SKIP_KERNEL_SYNC=1 USE_CCACHE=1 CCACHE_EXEC=/usr/bin/ccache CCACHE_DIR=/work/ccache
+#   cd /work/src && export USE_CCACHE=1 CCACHE_EXEC=/usr/bin/ccache CCACHE_DIR=/work/ccache
 #   source build/envsetup.sh && breakfast gold userdebug && m target-files-package otatools
 # and sign the target files as CI does, with the release keys on a RAM disk that is unmounted after:
 #   bash ci/sign.sh /keys/gold <target files> signed.zip package.zip
@@ -47,7 +46,7 @@ SWAP=/swapfile
 [ -f $SWAP ] || { fallocate -l 32G $SWAP && chmod 600 $SWAP && mkswap -q $SWAP; }
 swapon --show | grep -q $SWAP || swapon $SWAP
 
-# Marked only when both syncs went through, so a run that a fetch error stopped syncs again.
+# Marked only when the sync went through, so a run that a fetch error stopped syncs again.
 if [ ! -f $W/.synced ]; then
   say "sync"
   mkdir -p $SRC && cd $SRC
@@ -65,13 +64,6 @@ if [ ! -f $W/.synced ]; then
     repo sync -c -q -j4 --no-tags --no-clone-bundle --optimized-fetch --retry-fetches=10 --force-sync
   device/xiaomi/gold/patches/apply.sh lineage
 
-  say "kernel sources"
-  # As ci/vm-build.sh does: the kernel tree gets its own .repo, or repo init finds the Android tree's.
-  KT=out-kernel/xiaomi_gold
-  mkdir -p $KT/.repo && touch $KT/.out-dir
-  [ -d $KT/.repo/repo ] || cp -R .repo/repo $KT/.repo/repo
-  (cd $KT && repo init -q -u https://github.com/Star-caorui/android_kernel_xiaomi_gold_manifest -b lineage-24.0 \
-    --depth=1 --no-use-superproject && repo sync -q -c --no-tags --force-sync)
   touch $W/.synced
 fi
 

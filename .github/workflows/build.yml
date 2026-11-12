@@ -128,7 +128,7 @@ jobs:
             esac
           }
           {
-            echo "\`$VARIANT\`, GKI build \`$(sed -n 's/^gki_build=//p' build-info.txt 2>/dev/null)\`${SNAPSHOT_URL:+, rebuilt from [a manifest snapshot]($SNAPSHOT_URL)}"
+            echo "\`$VARIANT\`, kernel \`$(sed -n 's/^kernel=//p' build-info.txt 2>/dev/null)\`${SNAPSHOT_URL:+, rebuilt from [a manifest snapshot]($SNAPSHOT_URL)}"
             echo
             echo "| Repository | Requested | Built from |"
             echo "| --- | --- | --- |"
@@ -200,10 +200,11 @@ jobs:
           section() { printf '%s\n' "$prevbody" | awk -v h="## $1" '$0==h{p=1;next} /^## /{p=0} p'; }
           # What changed in our repositories since the previous release, from the two builds' manifest snapshots.
           mkdir prev
-          gh release download "$prev" -D prev -p manifest-snapshot.xml -p kernel-manifest-snapshot.xml || true
+          # The kernel is a prebuilt repository in the main manifest now, its tag in the snapshot; releases before
+          # also carry the snapshot of the kernel sources build_kernel built from, which is left out here.
+          gh release download "$prev" -D prev -p manifest-snapshot.xml || true
           if [ -f prev/manifest-snapshot.xml ]; then
-            commits=$(python3 ci/release-changes.py --old prev/*manifest-snapshot.xml \
-              --new out/manifest-snapshot.xml out/kernel-manifest-snapshot.xml)
+            commits=$(python3 ci/release-changes.py --old prev/manifest-snapshot.xml --new out/manifest-snapshot.xml)
           else
             commits="${prev##*-} has no manifest snapshot to compare with."
           fi
@@ -237,8 +238,7 @@ jobs:
           pre=; [ "$variant" = user ] || pre=--prerelease
           gh release create "$name" --draft $pre --target main \
             --title "LineageOS $lineage | Unofficial | Android $android | $stamp" --notes-file notes.md \
-            out/$name.zip out/boot.img out/vendor_boot.img \
-            out/manifest-snapshot.xml out/kernel-manifest-snapshot.xml
+            out/$name.zip out/boot.img out/vendor_boot.img out/manifest-snapshot.xml
           echo "Draft release [\`$name\`](https://github.com/$GITHUB_REPOSITORY/releases), incremental \`$incremental\`." >> $GITHUB_STEP_SUMMARY
 
       - name: Write where the build time went
@@ -256,7 +256,6 @@ jobs:
             out/*.zip
             out/*.img
             out/manifest-snapshot.xml
-            out/kernel-manifest-snapshot.xml
 
 
   clean-up:

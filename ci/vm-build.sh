@@ -7,8 +7,8 @@
 # Instance metadata it reads: run-id, bucket, device-ref, vendor-ref, variant (user or
 # userdebug; userdebug when missing), sign-script (ci/sign.sh),
 # check-script (ci/check-keys.py, which ci/sign.sh runs),
-# snapshot-url (optional: a manifest snapshot of an earlier build to rebuild it; the kernel
-# sources' snapshot is taken from next to it), sync-only (true: stop after the sync).
+# snapshot-url (optional: a manifest snapshot of an earlier build to rebuild it), sync-only (true:
+# stop after the sync).
 
 set -uo pipefail
 export HOME=/root  # startup scripts run without it; git and Soong need it
@@ -231,36 +231,10 @@ ccache -M 50G > /dev/null; ccache -z > /dev/null
 ( while sleep 1200; do gcloud storage rsync -r $CCACHE_DIR $C --quiet 2>/dev/null; done ) &
 CSYNC=$!
 
-say "kernel"
-# LineageOS's build_kernel builds the kernel in out-kernel/xiaomi_gold, but syncs only the manifests
-# LineageOS hosts, so android_kernel_xiaomi_gold_manifest is synced there first, as local_manifests'
-# README has it; for a rebuild, from the kernel sources' snapshot of that build.
-KT=out-kernel/xiaomi_gold
-mkdir -p $KT && touch $KT/.out-dir
-# Its own .repo, with the Android tree's copy of repo, as build_kernel makes it: without one, repo init
-# finds the Android tree's .repo above and initialises that instead.
-mkdir -p $KT/.repo && { [ -d $KT/.repo/repo ] || cp -R .repo/repo $KT/.repo/repo; } || exit 1
-(cd $KT && repo init -q -u https://github.com/Star-caorui/android_kernel_xiaomi_gold_manifest -b lineage-24.0 \
-  --depth=1 --no-use-superproject) || exit 1
-if [ -n "$SNAPSHOT_URL" ]; then
-  curl -sfo $KT/.repo/manifests/snapshot.xml "${SNAPSHOT_URL%/*}/kernel-manifest-snapshot.xml" || exit 1
-  (cd $KT && repo init -q -m snapshot.xml) || exit 1
-fi
-(cd $KT && repo sync -q -c --no-tags --force-sync) || exit 1
-(cd $KT && repo manifest -r -o $STAGE/kernel-manifest-snapshot.xml) || exit 1
-# the GKI build is the one the kernel manifest's build script names (GKI_BUILD, with kernel-6.6 at its source);
-# a snapshot from before it did rebuilds with the newest its gki.sha256 lists, as those builds took
-GKI_BUILD=$(sed -n 's/^GKI_BUILD=\([0-9]*\)$/\1/p' $KT/manifest/build_mgk_64_k66.sh)
-if [ -z "$GKI_BUILD" ]; then
-  GKI_BUILD=$(awk '/^[0-9]/ { print $1 }' $KT/manifest/gki.sha256 | sort -n | tail -1)
-  export GKI_BUILD
-fi
-say "GKI build $GKI_BUILD"
-
 say "build"
 set +u
-# breakfast runs build_kernel itself; the kernel sources are synced above
-export SKIP_KERNEL_SYNC=1
+# The kernel is prebuilt: the device tree takes it from device/xiaomi/gold-kernel, which local_manifests
+# syncs at a tag of android_kernel_xiaomi_gold's release branch.
 source build/envsetup.sh
 breakfast gold $VARIANT || exit 1
 m target-files-package otatools || exit 1
@@ -295,7 +269,7 @@ prop() { cat $P/system/build.prop $P/product/etc/build.prop | grep -m1 "^$1=" | 
   echo "tags=$(unzip -p $SIGNED SYSTEM/build.prop | grep -m1 '^ro.build.tags=' | cut -d= -f2)"
   echo "date=$(date -u +%Y-%m-%d)"
   echo "variant=$VARIANT"
-  echo "gki_build=$GKI_BUILD"
+  echo "kernel=$(git -C device/xiaomi/gold-kernel log -1 --format=%s)"
 } > $STAGE/build-info.txt
 cat $STAGE/build-info.txt
 gcloud storage cp $STAGE/* $R/out/ --quiet || exit 1
