@@ -14,8 +14,8 @@ on:
       variant:
         description: Build variant
         type: choice
-        options: [user, userdebug]
-        default: user
+        options: [userdebug, user]
+        default: userdebug
       snapshot_url:
         description: Manifest snapshot of an earlier build to rebuild it exactly (overrides the refs above)
         default: ''
@@ -236,9 +236,7 @@ jobs:
             echo
             echo "See [Installing](https://github.com/$GITHUB_REPOSITORY#installing) in the README."
           } > notes.md
-          # userdebug builds are for testing, so they are pre-releases
-          pre=; [ "$variant" = user ] || pre=--prerelease
-          gh release create "$name" --draft $pre --target main \
+          gh release create "$name" --draft --target main \
             --title "LineageOS $lineage | Unofficial | Android $android | $shown" --notes-file notes.md \
             out/$name.zip out/boot.img out/vendor_boot.img out/manifest-snapshot.xml
           echo "Draft release [\`$name\`](https://github.com/$GITHUB_REPOSITORY/releases), incremental \`$incremental\`." >> $GITHUB_STEP_SUMMARY
