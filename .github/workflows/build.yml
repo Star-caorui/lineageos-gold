@@ -193,6 +193,8 @@ jobs:
           day=$(TZ=Asia/Shanghai date +%Y%m%d)
           n=$(gh release list --limit 100 --json tagName --jq "[.[] | select(.tagName | contains(\"Vanilla-$day\"))] | length")
           stamp=$day$(printf %02d $((n + 1)))
+          # The title shows the day, and -<n> for a day's second and later releases
+          shown=$day; [ $n = 0 ] || shown=$day-$((n + 1))
           name=LineageOS-gold-Unofficial-$lineage-Vanilla-$stamp
           mv out/package.zip out/$name.zip
           prev=$(gh release list --limit 20 --exclude-drafts --json tagName,isLatest --jq '.[0].tagName')
@@ -237,7 +239,7 @@ jobs:
           # userdebug builds are for testing, so they are pre-releases
           pre=; [ "$variant" = user ] || pre=--prerelease
           gh release create "$name" --draft $pre --target main \
-            --title "LineageOS $lineage | Unofficial | Android $android | $stamp" --notes-file notes.md \
+            --title "LineageOS $lineage | Unofficial | Android $android | $shown" --notes-file notes.md \
             out/$name.zip out/boot.img out/vendor_boot.img out/manifest-snapshot.xml
           echo "Draft release [\`$name\`](https://github.com/$GITHUB_REPOSITORY/releases), incremental \`$incremental\`." >> $GITHUB_STEP_SUMMARY
 
